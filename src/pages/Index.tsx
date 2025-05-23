@@ -4,8 +4,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button'; // Using shadcn Button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Using shadcn Card
-import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell, BarChart2 } from 'lucide-react'; // Importing icons, added BarChart2
+import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell } from 'lucide-react'; // Importing icons
 // Removed: import { usePopup } from '@/contexts/PopupContext'; // Import usePopup
+import MonEspacePreviewTable from '@/components/MonEspacePreviewTable'; // Import the new component
 
 const Index: React.FC = () => {
   // Removed: const { showMonEspacePreviewPopup } = usePopup(); // Get the new function from context
@@ -89,7 +90,7 @@ const Index: React.FC = () => {
         {/* Separator Line */}
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
 
-        {/* Mon Espace Static Preview Section */}
+        {/* Mon Espace Static Preview Section (using the new component) */}
         <section className="mt-16 w-full max-w-4xl text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-8">
                 Suivez vos progrès dans votre espace personnel
@@ -97,14 +98,9 @@ const Index: React.FC = () => {
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                 Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.
             </p>
-            {/* Placeholder for the screenshot/image */}
-            <div className="w-full max-w-3xl mx-auto bg-gray-200 rounded-lg overflow-hidden shadow-xl">
-                {/* Replace this div with an actual img tag pointing to your screenshot */}
-                <img
-                    src="/mon-espace-preview.jpg" // Placeholder image path
-                    alt="Aperçu de la page Mon Espace"
-                    className="w-full h-auto object-cover"
-                />
+            {/* Render the new preview component */}
+            <div className="w-full flex justify-center"> {/* Wrapper to center the card */}
+               <MonEspacePreviewTable />
             </div>
              <div className="mt-8">
                 <Button
