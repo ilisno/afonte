@@ -17,7 +17,7 @@ interface PopupContent {
 interface PopupContextType {
   showPopup: (content: PopupContent) => void; // Keep original showPopup for specific cases if needed
   showRandomPopup: (options?: { onCloseCallback?: () => void }) => void; // Function for random popups, accepts callback
-  showMonEspacePreviewPopup: (options?: { onCloseCallback?: () => void }) => void; // New function for Mon Espace preview popup
+  // Removed: showMonEspacePreviewPopup: (options?: { onCloseCallback?: () => void }) => void; // New function for Mon Espace preview popup
   hidePopup: () => void;
   popupState: {
     isOpen: boolean;
@@ -73,18 +73,18 @@ const popupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit callbac
     secondaryButtonText: "Continuer",
     secondaryButtonAction: () => {}, // Action to just close the popup
   },
-  // New entry for Mon Espace preview
-  {
-    id: 'mon_espace_preview',
-    title: "Suivez vos programmes et performances !",
-    description: "Connectez-vous à votre espace personnel pour retrouver tous vos programmes générés et enregistrer vos performances séance après séance.",
-    imageSrc: "/mon-espace-preview.jpg", // Placeholder image - replace with a screenshot of Mon Espace
-    imageAlt: "Aperçu de la page Mon Espace",
-    primaryButtonText: "Aller à Mon Espace",
-    primaryButtonAction: "/mon-espace", // This is a link path
-    secondaryButtonText: "Fermer",
-    secondaryButtonAction: () => {}, // Action to just close the popup
-  },
+  // Removed: New entry for Mon Espace preview
+  // {
+  //   id: 'mon_espace_preview',
+  //   title: "Suivez vos programmes et performances !",
+  //   description: "Connectez-vous à votre espace personnel pour retrouver tous vos programmes générés et enregistrer vos performances séance après séance.",
+  //   imageSrc: "/mon-espace-preview.jpg", // Placeholder image - replace with a screenshot of Mon Espace
+  //   imageAlt: "Aperçu de la page Mon Espace",
+  //   primaryButtonText: "Aller à Mon Espace",
+  //   primaryButtonAction: "/mon-espace", // This is a link path
+  //   secondaryButtonText: "Fermer",
+  //   secondaryButtonAction: () => {}, // Action to just close the popup
+  // },
 ];
 
 
@@ -119,20 +119,20 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setPopupState({ isOpen: true, content: { ...randomContent, onCloseCallback: options?.onCloseCallback } });
   }, []); // Empty dependency array as it doesn't depend on external state
 
-  // New function to show the Mon Espace preview popup
-  const showMonEspacePreviewPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
-      const previewContent = popupContents.find(p => p.id === 'mon_espace_preview');
+  // Removed: New function to show the Mon Espace preview popup
+  // const showMonEspacePreviewPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
+  //     const previewContent = popupContents.find(p => p.id === 'mon_espace_preview');
 
-      if (!previewContent) {
-          console.error("Mon Espace preview popup content not found.");
-          options?.onCloseCallback?.(); // Still run callback even if no popup is shown
-          return;
-      }
+  //     if (!previewContent) {
+  //         console.error("Mon Espace preview popup content not found.");
+  //         options?.onCloseCallback?.(); // Still run callback even if no popup is shown
+  //         return;
+  //     }
 
-      console.log("Showing Mon Espace preview popup.");
-      // Add the onCloseCallback to the selected content before setting state
-      setPopupState({ isOpen: true, content: { ...previewContent, onCloseCallback: options?.onCloseCallback } });
-  }, []); // Empty dependency array
+  //     console.log("Showing Mon Espace preview popup.");
+  //     // Add the onCloseCallback to the selected content before setting state
+  //     setPopupState({ isOpen: true, content: { ...previewContent, onCloseCallback: options?.onCloseCallback } });
+  // }, []); // Empty dependency array
 
   const hidePopup = useCallback(() => {
      // Get the content of the popup being closed
@@ -150,10 +150,10 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const contextValue = useMemo(() => ({
       showPopup, // Expose showSpecificPopup as showPopup
       showRandomPopup,
-      showMonEspacePreviewPopup, // Expose the new function
+      // Removed: showMonEspacePreviewPopup, // Expose the new function
       hidePopup,
       popupState,
-  }), [showPopup, showRandomPopup, showMonEspacePreviewPopup, hidePopup, popupState]); // Include all dependencies
+  }), [showPopup, showRandomPopup, hidePopup, popupState]); // Include all dependencies
 
   return (
     <PopupContext.Provider value={contextValue}>

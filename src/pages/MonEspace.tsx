@@ -423,9 +423,10 @@ const MonEspace: React.FC = () => {
                  </form>
                </Form>
                <div className="mt-4 text-center">
-                  <Link to="/login" className="text-sbf-red hover:underline">
-                     Aller à la page de connexion complète
-                  </Link>
+                  {/* Corrected Button asChild usage */}
+                  <Button asChild variant="link" className="text-sbf-red hover:underline">
+                     <Link to="/login">Aller à la page de connexion complète</Link>
+                  </Button>
                </div>
             </CardContent>
           </Card>
@@ -577,6 +578,7 @@ const MonEspace: React.FC = () => {
                                                               className="w-20 text-center"
                                                            />
                                                            <span className="flex-shrink-0">kg</span>
+                                                           {setDetail?.isAmrap && <span className="text-sbf-red font-bold ml-2">(AMRAP)</span>} {/* Highlight AMRAP */}
                                                         </div>
                                                     );
                                                  })}
@@ -788,10 +790,9 @@ const MonEspace: React.FC = () => {
                 <div className="text-center text-gray-600">
                   <p>Aucun programme trouvé pour votre compte.</p>
                   <div className="mt-4">
+                     {/* Corrected Button asChild usage */}
                      <Button asChild className="bg-sbf-red text-white hover:bg-red-700">
-                        <div> {/* Wrap multiple children in a div */}
-                          <Link to="/programme">Générer mon premier programme</Link>
-                        </div>
+                       <Link to="/programme">Générer mon premier programme</Link>
                      </Button>
                   </div>
                 </div>

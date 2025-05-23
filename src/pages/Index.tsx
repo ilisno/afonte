@@ -5,10 +5,10 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button'; // Using shadcn Button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Using shadcn Card
 import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell, BarChart2 } from 'lucide-react'; // Importing icons, added BarChart2
-import { usePopup } from '@/contexts/PopupContext'; // Import usePopup
+// Removed: import { usePopup } from '@/contexts/PopupContext'; // Import usePopup
 
 const Index: React.FC = () => {
-  const { showMonEspacePreviewPopup } = usePopup(); // Get the new function from context
+  // Removed: const { showMonEspacePreviewPopup } = usePopup(); // Get the new function from context
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -89,7 +89,7 @@ const Index: React.FC = () => {
         {/* Separator Line */}
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
 
-        {/* Mon Espace Preview Section */}
+        {/* Mon Espace Static Preview Section */}
         <section className="mt-16 w-full max-w-4xl text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-8">
                 Suivez vos progrès dans votre espace personnel
@@ -97,12 +97,23 @@ const Index: React.FC = () => {
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                 Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.
             </p>
-            <Button
-                onClick={showMonEspacePreviewPopup} // Trigger the popup
-                className="bg-sbf-red text-white hover:bg-sbf-yellow hover:text-sbf-red text-lg px-8 py-6 rounded-md font-semibold shadow-lg transition-colors duration-300 border-2 border-sbf-yellow"
-            >
-                <BarChart2 className="mr-2 h-6 w-6" /> Voir un aperçu
-            </Button>
+            {/* Placeholder for the screenshot/image */}
+            <div className="w-full max-w-3xl mx-auto bg-gray-200 rounded-lg overflow-hidden shadow-xl">
+                {/* Replace this div with an actual img tag pointing to your screenshot */}
+                <img
+                    src="/mon-espace-preview.jpg" // Placeholder image path
+                    alt="Aperçu de la page Mon Espace"
+                    className="w-full h-auto object-cover"
+                />
+            </div>
+             <div className="mt-8">
+                <Button
+                   asChild
+                   className="bg-sbf-red text-white hover:bg-sbf-yellow hover:text-sbf-red text-lg px-8 py-6 rounded-md font-semibold shadow-lg transition-colors duration-300 border-2 border-sbf-yellow"
+               >
+                  <Link to="/mon-espace">Aller à Mon Espace</Link>
+               </Button>
+             </div>
         </section>
 
 
