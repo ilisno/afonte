@@ -479,8 +479,8 @@ const MonEspace: React.FC = () => {
       )}>
         <Card className={cn(
           "w-full shadow-lg",
-          isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl", // Full width and no rounded corners on mobile when program is selected
-          isMobile && selectedUserProgram && "px-4" // Add back horizontal padding to the Card itself on mobile when program is selected
+          isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl" // Full width and no rounded corners on mobile when program is selected
+          // Removed: isMobile && selectedUserProgram && "px-4" // Removed this conditional padding on the Card
         )}>
           <CardHeader className="text-center">
              {selectedUserProgram ? (
