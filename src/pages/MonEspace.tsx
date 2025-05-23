@@ -534,6 +534,10 @@ const MonEspace: React.FC = () => {
                                                  {exercise.notes && <span className="text-sm text-gray-500 italic ml-2">({exercise.notes})</span>}
                                               </AccordionTrigger>
                                               <AccordionContent className="p-4 pt-0 space-y-3">
+                                                 {/* Display muscles worked */}
+                                                 {exercise.muscles && exercise.muscles.length > 0 && (
+                                                    <p className="text-sm text-gray-600 italic mb-2">Muscles: {exercise.muscles.join(', ')}</p>
+                                                 )}
                                                  {setsArray.map((setIndex) => {
                                                     const setDetail = selectedUserProgram.program.is531 && exercise.setsDetails ? exercise.setsDetails[setIndex] : null;
                                                     const placeholderReps = setDetail ? setDetail.reps : exercise.reps;
@@ -628,6 +632,10 @@ const MonEspace: React.FC = () => {
                                                      // Display exercise name only for the first set row
                                                      <TableCell rowSpan={numberOfSets} className="font-medium align-top">
                                                        {exercise.name}
+                                                       {/* Display muscles worked */}
+                                                       {exercise.muscles && exercise.muscles.length > 0 && (
+                                                          <p className="text-sm text-gray-600 italic mt-1">({exercise.muscles.join(', ')})</p>
+                                                       )}
                                                        {exercise.notes && <p className="text-sm text-gray-500 italic mt-1">({exercise.notes})</p>} {/* Display program notes */}
                                                      </TableCell>
                                                    ) : null}

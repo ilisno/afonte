@@ -1,10 +1,6 @@
 import * as z from "zod";
 
 // Define the schema for form validation (needed for the generator function)
-// We need to redefine or import the schema used in ProgrammeGenerator
-// Let's define it here for now, assuming it's stable.
-// A better approach might be to define it in a shared schema file.
-// For simplicity, let's copy the relevant parts needed by the generator.
 const programFormSchemaForGenerator = z.object({
   objectif: z.enum(["Prise de Masse", "Sèche / Perte de Gras", "Powerlifting", "Powerbuilding"]),
   experience: z.enum(["Débutant (< 1 an)", "Intermédiaire (1-3 ans)", "Avancé (3+ ans)"]),
@@ -12,10 +8,6 @@ const programFormSchemaForGenerator = z.object({
   joursEntrainement: z.coerce.number().min(1).max(7),
   dureeMax: z.coerce.number().min(15).max(180),
   materiel: z.array(z.string()).optional(),
-  // Email is not needed for generation itself, but is part of the original schema
-  // email: z.string().email().or(z.literal("b")),
-
-  // New fields for 1RM (optional by default, but validated in component)
   squat1RM: z.coerce.number().optional().nullable(),
   bench1RM: z.coerce.number().optional().nullable(),
   deadlift1RM: z.coerce.number().optional().nullable(),
@@ -24,6 +16,19 @@ const programFormSchemaForGenerator = z.object({
 
 // Define a type for the form data used by the generator
 export type ProgramFormData = z.infer<typeof programFormSchemaForGenerator>;
+
+// Define types for exercise categories and muscle groups
+type ExerciseCategory = "Exercice de powerlifting" | "Compound secondaire" | "Isolation lourde" | "Isolation légère";
+type MuscleGroup = "Jambes" | "Pectoraux" | "Dos" | "Épaules" | "Biceps" | "Triceps" | "Abdos" | "Mollets" | "Avant-bras" | "Lombaires"; // Added Mollets, Avant-bras, Lombaires
+
+// Define a type for an exercise with new fields
+interface Exercise {
+  name: string;
+  category: ExerciseCategory;
+  muscleGroup: MuscleGroup; // General muscle group for filtering
+  muscles: string[]; // Specific muscles worked
+  equipment: string[]; // Equipment needed
+}
 
 
 // Define a type for the program structure
@@ -40,6 +45,7 @@ export type Program = {
         sets: string; // Still string for display like "3" or "5/3/1"
         reps: string; // Still string for display like "5+" or "3-5"
         notes?: string; // RPE or other notes
+        muscles?: string[]; // Muscles worked for display
         // New fields for 5/3/1 sets
         setsDetails?: { // Array of details for each set
             setNumber: number;
@@ -58,17 +64,79 @@ const roundToNearest2_5 = (weight: number): number => {
     return Math.round(weight / 2.5) * 2.5;
 };
 
-// --- Simplified Client-Side Program Generation Logic ---
-// NOTE: This is a basic placeholder. A real generator would be much more complex.
+// --- Updated Exercise List ---
+const allExercises: Exercise[] = [
+  // Exercice de powerlifting
+  { name: "Squat barre", category: "Exercice de powerlifting", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] },
+  { name: "Développé couché", category: "Exercice de powerlifting", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "épaules antérieures"], equipment: ["barre-halteres"] },
+  { name: "Soulevé de terre roumain", category: "Exercice de powerlifting", muscleGroup: "Dos", muscles: ["ischios", "fessiers", "lombaires"], equipment: ["barre-halteres"] }, // Changed muscleGroup to Dos as it's a back exercise primarily
+  { name: "Développé militaire barre", category: "Exercice de powerlifting", muscleGroup: "Épaules", muscles: ["épaules", "triceps"], equipment: ["barre-halteres"] },
+
+  // Compound secondaire
+  { name: "Développé incliné haltères", category: "Compound secondaire", muscleGroup: "Pectoraux", muscles: ["pectoraux supérieurs", "triceps", "épaules"], equipment: ["barre-halteres"] },
+  { name: "Rowing barre", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "trapèzes", "biceps"], equipment: ["barre-halteres"] },
+  { name: "Tractions", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "biceps"], equipment: ["poids-corps"] },
+  { name: "Dips", category: "Compound secondaire", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "épaules"], equipment: ["poids-corps"] },
+  { name: "Presse à cuisses", category: "Compound secondaire", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers"], equipment: ["machines-guidees"] },
+  { name: "Fentes haltères", category: "Compound secondaire", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] },
+  { name: "Tirage vertical machine", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "biceps"], equipment: ["machines-guidees"] },
+  { name: "Pompes", category: "Compound secondaire", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "épaules"], equipment: [] },
+  { name: "Tractions australiennes", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "biceps", "trapèzes"], equipment: ["poids-corps"] },
+  { name: "Split squat bulgare", category: "Compound secondaire", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] }, // Added
+
+  // Isolation lourde
+  { name: "Leg extension", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["quadriceps"], equipment: ["machines-guidees"] }, // Added
+  { name: "Leg curl", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["ischios"], equipment: ["machines-guidees"] }, // Added
+  { name: "Écartés poulie", category: "Isolation lourde", muscleGroup: "Pectoraux", muscles: ["pectoraux"], equipment: ["machines-guidees"] }, // Added
+  { name: "Curl biceps barre", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps"], equipment: ["barre-halteres"] }, // Added
+  { name: "Extension triceps poulie haute", category: "Isolation lourde", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] }, // Added
+  { name: "Curl incliné haltères", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (longue portion)"], equipment: ["barre-halteres"] }, // Added
+  { name: "Preacher curl", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (courte portion)"], equipment: ["barre-halteres", "machines-guidees"] }, // Added - assuming preacher bench/machine
+  { name: "Reverse curls", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["brachial", "avant-bras"], equipment: ["barre-halteres"] }, // Added
+
+  // Isolation légère
+  { name: "Élévations latérales haltères", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["barre-halteres"] }, // Added
+  { name: "Crunchs", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux (grand droit)"], equipment: [] }, // Added
+  { name: "Leg raises", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux inférieurs", "fléchisseurs de hanches"], equipment: [] }, // Added
+  { name: "Calf raises", category: "Isolation légère", muscleGroup: "Jambes", muscles: ["mollets"], equipment: [] }, // Added
+  { name: "Face pulls", category: "Isolation légère", muscleGroup: "Dos", muscles: ["deltoïdes postérieurs", "trapèzes", "rotateurs externes"], equipment: ["machines-guidees"] }, // Added - assuming cable machine
+  { name: "Pushdowns à la corde", category: "Isolation légère", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] }, // Added - assuming cable machine
+  { name: "Élévations latérales à la poulie basse", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["machines-guidees"] }, // Added
+];
+
+
+// Helper to filter exercises by available equipment
+const filterByEquipment = (exercises: Exercise[], availableEquipment?: string[]): Exercise[] => {
+    if (!availableEquipment || availableEquipment.length === 0) {
+        // If no equipment selected, only include exercises requiring no equipment
+        return exercises.filter(ex => ex.equipment.length === 0);
+    }
+    return exercises.filter(ex =>
+        ex.equipment.length === 0 || ex.equipment.some(eq => availableEquipment.includes(eq))
+    );
+};
+
+// Helper to filter exercises by target muscle groups
+const filterByMuscleGroups = (exercises: Exercise[], targetMuscleGroups: string[]): Exercise[] => {
+    if (!targetMuscleGroups || targetMuscleGroups.length === 0) {
+        return exercises; // If no target groups, return all
+    }
+    return exercises.filter(ex => targetMuscleGroups.includes(ex.muscleGroup));
+};
+
+
+// --- Client-Side Program Generation Logic ---
 export const generateProgramClientSide = (values: ProgramFormData): Program => {
   const { objectif, experience, split, joursEntrainement, materiel, dureeMax, squat1RM, bench1RM, deadlift1RM, ohp1RM } = values;
+
+  // Filter all exercises by available equipment once
+  const availableExercises = filterByEquipment(allExercises, materiel);
 
   // --- 5/3/1 Logic ---
   if (objectif === "Powerlifting" || objectif === "Powerbuilding") {
       // Ensure 1RMs are available (should be handled by Zod validation in component, but defensive check)
       if (squat1RM === null || bench1RM === null || deadlift1RM === null || ohp1RM === null ||
           squat1RM <= 0 || bench1RM <= 0 || deadlift1RM <= 0 || ohp1RM <= 0) {
-          // This case should ideally not happen if form validation works, but return a minimal program or throw error
           console.error("Missing 1RM values for 5/3/1 program generation.");
            return {
                title: "Erreur de Génération",
@@ -85,10 +153,10 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
       const tmOhp = roundToNearest2_5(ohp1RM * 0.9);
 
       const trainingMaxes = {
-          "Squat": tmSquat,
-          "Développé Couché": tmBench,
-          "Soulevé de Terre": tmDeadlift,
-          "Overhead Press": tmOhp,
+          "Squat barre": tmSquat, // Use updated names
+          "Développé couché": tmBench,
+          "Soulevé de terre roumain": tmDeadlift, // Use updated names
+          "Développé militaire barre": tmOhp, // Use updated names
       };
 
       // 5/3/1 percentages and reps per week
@@ -107,28 +175,13 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
       };
 
       // Define main lifts order for splitting
-      const mainLifts = ["Squat", "Développé Couché", "Soulevé de Terre", "Overhead Press"];
+      const mainLifts = ["Squat barre", "Développé couché", "Soulevé de terre roumain", "Développé militaire barre"]; // Use updated names
 
-      // Define accessory exercises (simple list, could be more complex based on split/day)
-      const accessoryExercises = [
-          { name: "Fentes Haltères", muscleGroup: "Jambes", type: "compound", equipment: ["barre-halteres"] },
-          { name: "Leg Extension", muscleGroup: "Jambes", type: "isolation", equipment: ["machines-guidees"] },
-          { name: "Leg Curl", muscleGroup: "Jambes", type: "isolation", equipment: ["machines-guidees"] },
-          { name: "Écartés Poulie", muscleGroup: "Pectoraux", type: "isolation", equipment: ["machines-guidees"] },
-          { name: "Dips", muscleGroup: "Triceps", type: "compound", equipment: ["poids-corps"] },
-          { name: "Tirage Vertical Machine", muscleGroup: "Dos", type: "compound", equipment: ["machines-guidees"] },
-          { name: "Rowing Barre", muscleGroup: "Dos", type: "compound", equipment: ["barre-halteres"] },
-          { name: "Élévations Latérales Haltères", muscleGroup: "Épaules", type: "isolation", equipment: ["barre-halteres"] },
-          { name: "Curl Biceps Barre", muscleGroup: "Biceps", type: "isolation", equipment: ["barre-halteres"] },
-          { name: "Extension Triceps Poulie Haute", muscleGroup: "Triceps", type: "isolation", equipment: ["machines-guidees"] },
-          { name: "Crunchs", muscleGroup: "Abdos", type: "isolation", equipment: [] },
-          { name: "Leg Raises", muscleGroup: "Abdos", type: "isolation", equipment: [] },
-      ];
+      // Filter available exercises by category for accessory selection
+      const availableSecondaryCompounds = availableExercises.filter(ex => ex.category === "Compound secondaire");
+      const availableHeavyIsolations = availableExercises.filter(ex => ex.category === "Isolation lourde");
+      const availableLightIsolations = availableExercises.filter(ex => ex.category === "Isolation légère");
 
-      // Filter accessories by available equipment
-      const availableAccessories = accessoryExercises.filter(ex =>
-          ex.equipment.length === 0 || (materiel && materiel.some(eq => ex.equipment.includes(eq)))
-      );
 
       // Generate 4 weeks of 5/3/1
       for (const cycleWeek of cycleWeeks) {
@@ -142,17 +195,17 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
           if (joursEntrainement === 1) {
               dailyLifts.push(mainLifts); // All 4 lifts on day 1
           } else if (joursEntrainement === 2) {
-              dailyLifts.push(["Squat", "Overhead Press"]); // Day 1: Squat, OHP
-              dailyLifts.push(["Développé Couché", "Soulevé de Terre"]); // Day 2: Bench, Deadlift
+              dailyLifts.push(["Squat barre", "Développé militaire barre"]); // Day 1: Squat, OHP
+              dailyLifts.push(["Développé couché", "Soulevé de terre roumain"]); // Day 2: Bench, Deadlift
           } else if (joursEntrainement === 3) {
-              dailyLifts.push(["Squat"]); // Day 1: Squat
-              dailyLifts.push(["Développé Couché"]); // Day 2: Bench
-              dailyLifts.push(["Soulevé de Terre", "Overhead Press"]); // Day 3: Deadlift, OHP
+              dailyLifts.push(["Squat barre"]); // Day 1: Squat
+              dailyLifts.push(["Développé couché"]); // Day 2: Bench
+              dailyLifts.push(["Soulevé de terre roumain", "Développé militaire barre"]); // Day 3: Deadlift, OHP
           } else { // joursEntrainement >= 4
-              dailyLifts.push(["Squat"]); // Day 1: Squat
-              dailyLifts.push(["Développé Couché"]); // Day 2: Bench
-              dailyLifts.push(["Soulevé de Terre"]); // Day 3: Deadlift
-              dailyLifts.push(["Overhead Press"]); // Day 4: OHP
+              dailyLifts.push(["Squat barre"]); // Day 1: Squat
+              dailyLifts.push(["Développé couché"]); // Day 2: Bench
+              dailyLifts.push(["Soulevé de terre roumain"]); // Day 3: Deadlift
+              dailyLifts.push(["Développé militaire barre"]); // Day 4: OHP
               // Days 5, 6, 7 will be rest or additional accessory/cardio days (handled below)
           }
 
@@ -183,11 +236,15 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
                           };
                       });
 
+                      // Find the exercise object to get muscle info
+                      const exerciseObj = allExercises.find(ex => ex.name === liftName);
+
                       day.exercises.push({
                           name: liftName,
                           sets: cycleWeek.percentages.length.toString(), // Total number of sets
                           reps: cycleWeek.reps, // General rep scheme for the week
                           notes: `TM: ${tm} kg`, // Display TM in notes
+                          muscles: exerciseObj?.muscles, // Add muscles worked
                           setsDetails: setsDetails,
                       });
                   }
@@ -195,30 +252,50 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
 
               // Add accessory work for days with main lifts (days 1 to min(joursEntrainement, 4))
               if (dayIndex < Math.min(joursEntrainement, 4)) {
-                  let accessoryCount = 0;
                   const addedAccessoryNames = new Set<string>();
+                  const currentDayMuscles = day.exercises.flatMap(ex => ex.muscles || []); // Get muscles already hit by main lifts
 
-                  // Simple accessory logic: add 2-3 random available accessories
-                  // Could be improved to target specific muscle groups based on the main lift
-                  const potentialAccessoriesForDay = availableAccessories.filter(acc => {
-                      // Basic filtering: avoid adding accessories that are the main lifts
-                      return !mainLifts.includes(acc.name);
-                  });
+                  // Simple accessory logic: add a few accessories from different categories
+                  // Prioritize compounds, then heavy isolation, then light isolation
+                  const potentialAccessoriesForDay = [
+                      ...availableSecondaryCompounds,
+                      ...availableHeavyIsolations,
+                      ...availableLightIsolations,
+                  ].filter(acc => !mainLifts.includes(acc.name)); // Exclude main lifts
 
-                  // Shuffle and pick a few accessories
-                  const shuffledAccessories = potentialAccessoriesForDay.sort(() => 0.5 - Math.random());
-                  shuffledAccessories.slice(0, 3).forEach(acc => { // Add up to 3 accessories
-                      if (!addedAccessoryNames.has(acc.name)) {
-                           day.exercises.push({
-                               name: acc.name,
-                               sets: "3", // Default accessory sets
-                               reps: "8-12", // Default accessory reps
-                               notes: "Accessoire",
-                           });
-                           addedAccessoryNames.add(acc.name);
-                           accessoryCount++;
+                  // Add accessories, trying to hit muscles not already heavily targeted or adding volume
+                  let accessoriesAddedCount = 0;
+                  const maxAccessoriesPerDay = 4; // Limit total accessories
+
+                  // Helper to add accessory if possible
+                  const addAccessoryIfPossible = (acc: Exercise) => {
+                      if (accessoriesAddedCount >= maxAccessoriesPerDay || addedAccessoryNames.has(acc.name)) {
+                          return false;
                       }
-                  });
+                       // Simple check: avoid adding if the primary muscle group is already heavily targeted (basic)
+                       // This is a very simple heuristic and could be improved.
+                       // For now, just add if available and not already added.
+                       day.exercises.push({
+                           name: acc.name,
+                           sets: "3", // Default accessory sets
+                           reps: "8-12", // Default accessory reps
+                           notes: "Accessoire",
+                           muscles: acc.muscles, // Add muscles worked
+                       });
+                       addedAccessoryNames.add(acc.name);
+                       accessoriesAddedCount++;
+                       return true;
+                  };
+
+                  // Add a few secondary compounds
+                  availableSecondaryCompounds.filter(acc => !mainLifts.includes(acc.name)).slice(0, 1).forEach(addAccessoryIfPossible);
+
+                  // Add a few heavy isolations
+                  availableHeavyIsolations.slice(0, 1).forEach(addAccessoryIfPossible);
+
+                  // Add a few light isolations
+                  availableLightIsolations.slice(0, 2).forEach(addAccessoryIfPossible);
+
               }
 
               week.days.push(day);
@@ -233,59 +310,22 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
   const baseReps = objectif === "Sèche / Perte de Gras" ? "12-15" : "8-12"; // Simplified reps
   const baseSets = 3; // Use number for calculations
 
-  // Exercise list with type, muscle group (general), and specific muscle group (for legs)
-  const allExercises = [
-    { name: "Squat Barre", muscleGroup: "Jambes", specificMuscleGroup: "Quadriceps", type: "compound", equipment: ["barre-halteres"] },
-    { name: "Soulevé de Terre Roumain", muscleGroup: "Jambes", specificMuscleGroup: "Ischios", type: "compound", equipment: ["barre-halteres"] },
-    { name: "Développé Couché", muscleGroup: "Pectoraux", specificMuscleGroup: null, type: "compound", equipment: ["barre-halteres"] },
-    { name: "Développé Incliné Haltères", muscleGroup: "Pectoraux", specificMuscleGroup: null, type: "compound", equipment: ["barre-halteres"] },
-    { name: "Tractions", muscleGroup: "Dos", specificMuscleGroup: null, type: "compound", equipment: ["poids-corps"] },
-    { name: "Tractions australiennes", muscleGroup: "Dos", specificMuscleGroup: null, type: "compound", equipment: ["poids-corps"] },
-    { name: "Dips", muscleGroup: "Triceps", specificMuscleGroup: null, type: "compound", equipment: ["poids-corps"] }, // Renamed Dips
-    { name: "Pompes", muscleGroup: "Pectoraux", specificMuscleGroup: null, type: "compound", equipment: [] },
-    { name: "Rowing Barre", muscleGroup: "Dos", specificMuscleGroup: null, type: "compound", equipment: ["barre-halteres"] },
-    { name: "Presse à Cuisses", muscleGroup: "Jambes", specificMuscleGroup: "Quadriceps", type: "compound", equipment: ["machines-guidees"] },
-    { name: "Fentes Haltères", muscleGroup: "Jambes", specificMuscleGroup: "Quadriceps", type: "compound", equipment: ["barre-halteres"] },
-    { name: "Développé Militaire Barre", muscleGroup: "Épaules", specificMuscleGroup: null, type: "compound", equipment: ["barre-halteres"] },
-    { name: "Écartés Poulie", muscleGroup: "Pectoraux", specificMuscleGroup: null, type: "isolation", equipment: ["machines-guidees"] },
-    { name: "Tirage Vertical Machine", muscleGroup: "Dos", specificMuscleGroup: null, type: "compound", equipment: ["machines-guidees"] },
-    { name: "Élévations Latérales Haltères", muscleGroup: "Épaules", specificMuscleGroup: null, type: "isolation", equipment: ["barre-halteres"] },
-    { name: "Curl Biceps Barre", muscleGroup: "Biceps", specificMuscleGroup: null, type: "isolation", equipment: ["barre-halteres"] },
-    { name: "Extension Triceps Poulie Haute", muscleGroup: "Triceps", specificMuscleGroup: null, type: "isolation", equipment: ["machines-guidees"] },
-    { name: "Crunchs", muscleGroup: "Abdos", specificMuscleGroup: null, type: "isolation", equipment: [] }, // Added Crunchs
-    { name: "Leg Raises", muscleGroup: "Abdos", specificMuscleGroup: null, type: "isolation", equipment: [] }, // Added Leg Raises
-    { name: "Leg Extension", muscleGroup: "Jambes", specificMuscleGroup: "Quadriceps", type: "isolation", equipment: ["machines-guidees"] }, // New
-    { name: "Leg Curl", muscleGroup: "Jambes", specificMuscleGroup: "Ischios", type: "isolation", equipment: ["machines-guidees"] }, // New
-    { name: "Calf Raises", muscleGroup: "Jambes", specificMuscleGroup: "Mollets", type: "isolation", equipment: [] }, // New
-  ];
+  // Define "big strength" exercises (using updated names) for RPE calculation
+  const bigStrengthExercises = ["Squat barre", "Soulevé de terre roumain", "Développé couché", "Développé militaire barre"];
 
-  // Define "big strength" exercises for RPE calculation (used in old logic)
-  const bigStrengthExercises = ["Squat Barre", "Soulevé de Terre Roumain", "Développé Couché", "Développé Militaire Barre"];
-
-  // Filter exercises based on available equipment
-  const availableExercises = allExercises.filter(ex =>
-    ex.equipment.length === 0 || (materiel && materiel.some(eq => ex.equipment.includes(eq)))
-  );
-
-  const program: Program = {
-    title: `Programme ${objectif} - ${experience}`,
-    description: `Programme généré pour ${joursEntrainement} jours/semaine, split ${split}. Durée max par séance: ${dureeMax} minutes.`,
-    weeks: [],
-  };
-
-  // Define muscle groups for each split type
-  const splitMuscles: { [key: string]: string[][] } = {
+  // Define muscle groups for each split type (using general MuscleGroup type)
+  const splitMuscles: { [key: string]: MuscleGroup[][] } = {
       "Full Body (Tout le corps)": [["Jambes", "Pectoraux", "Dos", "Épaules", "Biceps", "Triceps", "Abdos"]], // All muscles each day
-      "Half Body (Haut / Bas)": [["Pectoraux", "Dos", "Épaules", "Biceps", "Triceps"], ["Jambes", "Abdos"]], // Upper/Lower split
-      "Push Pull Legs": [["Pectoraux", "Épaules", "Triceps"], ["Dos", "Biceps"], ["Jambes", "Abdos"]], // PPL split
-      "Autre / Pas de préférence": [["Jambes", "Pectoraux", "Dos", "Épaules", "Biceps", "Triceps", "Abdos"]], // Default to Full Body logic
+      "Half Body (Haut / Bas)": [["Pectoraux", "Dos", "Épaules", "Biceps", "Triceps"], ["Jambes", "Abdos", "Mollets"]], // Upper/Lower split, added Mollets
+      "Push Pull Legs": [["Pectoraux", "Épaules", "Triceps"], ["Dos", "Biceps", "Avant-bras"], ["Jambes", "Abdos", "Mollets"]], // PPL split, added Avant-bras, Mollets
+      "Autre / Pas de préférence": [["Jambes", "Pectoraux", "Dos", "Épaules", "Biceps", "Triceps", "Abdos", "Mollets", "Avant-bras", "Lombaires"]], // Default to Full Body logic, include all general groups
   };
 
   const selectedSplitMuscles = splitMuscles[split] || splitMuscles["Autre / Pas de préférence"];
   const numSplitDays = selectedSplitMuscles.length;
 
-  // Define large muscle groups for volume tracking
-  const largeMuscleGroups = ["Jambes", "Pectoraux", "Dos", "Épaules"];
+  // Define large muscle groups for volume tracking (using general MuscleGroup type)
+  const largeMuscleGroups: MuscleGroup[] = ["Jambes", "Pectoraux", "Dos", "Épaules"];
   const weeklyVolumeCap = 15; // Max sets per week for large muscle groups
 
   // Generate 4 weeks
@@ -296,7 +336,7 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
     };
 
     // Initialize weekly volume tracker for this week
-    const weeklyVolume: { [key: string]: number } = {};
+    const weeklyVolume: { [key in MuscleGroup]?: number } = {}; // Use MuscleGroup type for keys
     largeMuscleGroups.forEach(group => weeklyVolume[group] = 0);
 
 
@@ -310,17 +350,18 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
       // Determine which muscle groups to target based on the split and day index
       const targetMuscleGroups = selectedSplitMuscles[dayIndex % numSplitDays];
 
-      let dayExercises: typeof allExercises = [];
+      let dayExercises: Exercise[] = [];
       const addedExerciseNames = new Set<string>(); // To track added exercises
 
       // Helper to add exercise if available, targets muscle group, not already added, and respects volume cap
       // Returns true if added, false otherwise
-      const addExerciseIfPossible = (exercise: typeof allExercises[number]) => {
+      const addExerciseIfPossible = (exercise: Exercise) => {
           if (!exercise || addedExerciseNames.has(exercise.name)) {
               return false;
           }
 
-          // Check if exercise is available with current equipment
+          // Check if exercise is available with current equipment (already filtered availableExercises)
+          // This check is redundant if we only pick from availableExercises, but harmless.
           const isAvailable = exercise.equipment.length === 0 || (materiel && materiel.some(eq => exercise.equipment.includes(eq)));
           if (!isAvailable) {
               return false;
@@ -341,78 +382,62 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
           return true; // Exercise added
       };
 
-      // Filter all exercises by target muscle groups for today
-      const potentialExercisesForToday = allExercises.filter(ex =>
-          targetMuscleGroups.includes(ex.muscleGroup)
-      );
+      // Filter available exercises by target muscle groups for today
+      const availableExercisesForToday = filterByMuscleGroups(availableExercises, targetMuscleGroups);
 
-      // Categorize potential exercises for today based on type and specific needs
-      const bigStrengthForToday = potentialExercisesForToday.filter(ex => bigStrengthExercises.includes(ex.name));
-      const inclineBenchForToday = potentialExercisesForToday.filter(ex => ex.name === "Développé Incliné Haltères");
-      const otherCompoundsForToday = potentialExercisesForToday.filter(ex =>
-          ex.type === 'compound' &&
-          !bigStrengthExercises.includes(ex.name) &&
-          ex.name !== "Développé Incliné Haltères"
-      );
-      const legIsolationsForToday = potentialExercisesForToday.filter(ex =>
-          ex.type === 'isolation' &&
-          ex.muscleGroup === 'Jambes' // Filter by general muscle group 'Jambes' for isolation
-      );
-      const armShoulderIsolationsForToday = potentialExercisesForToday.filter(ex =>
-          ex.type === 'isolation' &&
-          (ex.muscleGroup === 'Biceps' || ex.muscleGroup === 'Triceps' || ex.muscleGroup === 'Épaules')
-      );
-      const absIsolationsForToday = potentialExercisesForToday.filter(ex => ex.muscleGroup === "Abdos" && ex.type === 'isolation');
+      // Categorize available exercises for today based on the new categories
+      const powerliftingExercises = availableExercisesForToday.filter(ex => ex.category === "Exercice de powerlifting");
+      const secondaryCompounds = availableExercisesForToday.filter(ex => ex.category === "Compound secondaire");
+      const heavyIsolations = availableExercisesForToday.filter(ex => ex.category === "Isolation lourde");
+      const lightIsolations = availableExercisesForToday.filter(ex => ex.category === "Isolation légère");
 
 
-      // --- Add exercises in the desired order and quantity ---
+      // --- Add exercises based on category priority and limits ---
+      const maxExercisesPerDay = 8; // Overall limit
 
-      // 1. Big Strength (Add all available big strength exercises for today)
-      bigStrengthForToday.forEach(ex => addExerciseIfPossible(ex));
+      // 1. Powerlifting Exercises (Add up to 2)
+      powerliftingExercises.slice(0, 2).forEach(addExerciseIfPossible);
 
-      // 2. Développé Incliné Haltères (Add if available and targeted)
-      inclineBenchForToday.forEach(ex => addExerciseIfPossible(ex));
+      // 2. Secondary Compounds (Add up to 3)
+      secondaryCompounds.slice(0, 3).forEach(addExerciseIfPossible);
 
-      // 3. Other Compounds (Add a few other compounds if available and targeted)
-      otherCompoundsForToday.slice(0, 2).forEach(ex => addExerciseIfPossible(ex)); // Limit to 2 other compounds
+      // 3. Heavy Isolations (Add up to 2)
+      heavyIsolations.slice(0, 2).forEach(addExerciseIfPossible);
 
-      // 4. Leg Isolations (Add a few leg isolations if available and targeted)
-      legIsolationsForToday.slice(0, 2).forEach(ex => addExerciseIfPossible(ex)); // Limit to 2 leg isolations
+      // 4. Light Isolations (Add up to 2)
+      lightIsolations.slice(0, 2).forEach(addExerciseIfPossible);
 
-      // 5. Arm/Shoulder Isolations (Add a few arm/shoulder isolations if available and targeted)
-      armShoulderIsolationsForToday.slice(0, 2).forEach(ex => addExerciseIfPossible(ex)); // Limit to 2 arm/shoulder isolations
-
-      // 6. Abs Isolations (Add a few ab isolations if available and targeted)
-      absIsolationsForToday.slice(0, 2).forEach(ex => addExerciseIfPossible(ex)); // Limit to 2 ab isolations
-
-
-      // The total exercise limit (max 8) is implicitly handled by the slicing and limited additions above.
-      // If the total number of exercises added exceeds 8, the slicing below will still apply,
-      // but the goal is to build the list in order up to a reasonable number.
-      // Let's keep the slice as a final safeguard, although the ordered additions should manage this.
-      const finalDayExercises = dayExercises.slice(0, 8); // Keep the slice as a safeguard
+      // Ensure total exercises don't exceed maxExercisesPerDay (redundant with slicing above, but safe)
+      const finalDayExercises = dayExercises.slice(0, maxExercisesPerDay);
 
 
       // Format exercises for the program structure and calculate RPE
       day.exercises = finalDayExercises.map(ex => {
         let rpeNote = "";
-        if (ex.type === "isolation") {
-          rpeNote = "RPE 10";
-        } else if (bigStrengthExercises.includes(ex.name)) {
-          // RPE progression for big strength: 6 -> 7 -> 8 -> 10
-          const rpeMap: { [key: number]: number } = { 1: 6, 2: 7, 3: 8, 4: 10 };
-          rpeNote = `RPE ${rpeMap[weekNum] || 6}`; // Default to 6 if weekNum is unexpected
-        } else {
-          // RPE progression for other compounds: 7 -> 7.5 -> 8 -> 9
+        // RPE logic based on new categories
+        if (ex.category === "Isolation légère") {
+           rpeNote = "RPE 10"; // Push to failure
+        } else if (ex.category === "Isolation lourde") {
+           // RPE progression for heavy isolation: 8 -> 8.5 -> 9 -> 10
+           const rpeMap: { [key: number]: number | string } = { 1: 8, 2: 8.5, 3: 9, 4: 10 };
+           rpeNote = `RPE ${rpeMap[weekNum] || 8}`;
+        } else if (ex.category === "Compound secondaire") {
+           // RPE progression for secondary compounds: 7 -> 7.5 -> 8 -> 9
            const rpeMap: { [key: number]: number | string } = { 1: 7, 2: 7.5, 3: 8, 4: 9 };
-           rpeNote = `RPE ${rpeMap[weekNum] || 7}`; // Default to 7 if weekNum is unexpected
+           rpeNote = `RPE ${rpeMap[weekNum] || 7}`;
+        } else if (ex.category === "Exercice de powerlifting") {
+           // RPE progression for powerlifting exercises: 6 -> 7 -> 8 -> 10
+           const rpeMap: { [key: number]: number } = { 1: 6, 2: 7, 3: 8, 4: 10 };
+           rpeNote = `RPE ${rpeMap[weekNum] || 6}`;
         }
+
 
         return {
           name: ex.name,
           sets: baseSets.toString(), // Convert back to string for display
           reps: baseReps,
-          notes: rpeNote
+          notes: rpeNote,
+          muscles: ex.muscles, // Add muscles worked
         };
       });
 
