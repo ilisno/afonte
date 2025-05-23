@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom';
 
 const BlogPostDetail: React.FC = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>();
-  // Assuming post.content is now a string based on schema change
-  const [post, setPost] = useState<any>(null); // Keep 'any' for now, but expect content to be string
+  // Assuming post.body is now a string based on schema change
+  const [post, setPost] = useState<any>(null); // Keep 'any' for now, but expect body to be string
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showRandomPopup } = usePopup();
@@ -27,12 +27,12 @@ const BlogPostDetail: React.FC = () => {
       setPost(null); // Clear previous post data
 
       try {
-        // Ensure the query fetches the 'content' field
+        // Ensure the query fetches the 'body' field
         const query = `*[_type == "post" && slug.current == $slug]{
           _id,
           title,
           slug,
-          content, // Fetch the content (now expected as plain text)
+          body, // Fetch the content from the 'body' field
           "categories": categories[]->title,
           "author": author->{name, image}
         }`;
@@ -152,12 +152,12 @@ const BlogPostDetail: React.FC = () => {
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8 text-gray-800">{post.title}</h1> {/* Increased bottom margin */}
 
-        {/* Render the plain text content by splitting lines */}
+        {/* Render the plain text content from 'body' by splitting lines */}
         {/* Apply prose classes to style the content */}
         <div className="prose prose-lg max-w-none mx-auto"> {/* Added mx-auto to center if max-width was applied */}
-           {/* Check if post.content exists and is a string before splitting */}
-           {typeof post.content === 'string' && post.content.length > 0 ? (
-               post.content.split('\n').map((para, idx) => <p key={idx}>{para}</p>)
+           {/* Check if post.body exists and is a string before splitting */}
+           {typeof post.body === 'string' && post.body.length > 0 ? (
+               post.body.split('\n').map((para, idx) => <p key={idx}>{para}</p>)
            ) : (
                <p>Contenu de l'article non disponible ou vide.</p> // Fallback message
            )}
