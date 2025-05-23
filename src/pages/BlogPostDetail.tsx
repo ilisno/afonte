@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { PortableText } from '@portabletext/react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDescriptionShadcn } from "@/components/ui/card";
-import { usePopup } from '@/contexts/PopupContext';
+import { usePopup } from '@/contexts/PopupContext'; // Import usePopup
 import { useNavigate } from 'react-router-dom';
 
 const BlogPostDetail: React.FC = () => {
@@ -14,7 +14,7 @@ const BlogPostDetail: React.FC = () => {
   const [post, setPost] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { showRandomPopup } = usePopup();
+  const { showPopup } = usePopup(); // Use showPopup from context
   const navigate = useNavigate();
 
   console.log("[BlogPostDetail] Component mounted for slug:", postSlug);
@@ -71,39 +71,32 @@ const BlogPostDetail: React.FC = () => {
 
   }, [postSlug]);
 
-  const handleGenerateProgramClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    console.log("[BlogPostDetail] 'Générer mon programme' button clicked.");
+  // --- Effect to show the program generator CTA popup after a delay ---
+  useEffect(() => {
+      // Only set the timer if the post is loaded and there's no error
+      if (!isLoading && !error && post) {
+          console.log("[BlogPostDetail] Setting timer for program generator CTA popup...");
+          const timer = setTimeout(() => {
+              console.log("[BlogPostDetail] Timer finished, showing program generator CTA popup.");
+              // Use the showPopup function with the specific popup ID
+              showPopup('blog_cta_program');
+          }, 10000); // 10 seconds delay
 
-    const handlePopupCloseAndNavigate = () => {
-        console.log("[BlogPostDetail] Popup closed, navigating to ProgrammeGenerator...");
-        navigate('/programme');
-    };
+          // Cleanup the timer when the component unmounts or dependencies change
+          return () => {
+              console.log("[BlogPostDetail] Clearing timer.");
+              clearTimeout(timer);
+          };
+      }
+      // The effect depends on isLoading, error, post, and showPopup
+  }, [isLoading, error, post, showPopup]);
 
-    showRandomPopup({ onCloseCallback: handlePopupCloseAndNavigate });
-  };
 
-  const renderCallToActionBanner = () => {
-    return (
-      <Card className="bg-sbf-red text-white p-6 my-8">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Générez votre programme personnalisé gratuitement !</CardTitle>
-          <CardDescriptionShadcn className="text-lg">
-            Besoin d'un programme sur mesure pour atteindre vos objectifs ? Utilisez notre générateur de programmes pour créer un plan d'entraînement adapté à vos besoins.
-          </CardDescriptionShadcn>
-        </CardHeader>
-        <CardContent className="text-center">
-          <Button
-            onClick={handleGenerateProgramClick}
-            className="bg-white text-sbf-red hover:bg-gray-200 text-lg py-4 px-8 rounded-md font-semibold"
-          >
-            Générer mon programme
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  };
+  // Removed: renderCallToActionBanner function is no longer needed
+  // const renderCallToActionBanner = () => { ... };
 
+
+  // --- Conditional Rendering based on state ---
   if (isLoading) {
     console.log("[BlogPostDetail] Rendering: Loading state.");
     return (
@@ -143,6 +136,7 @@ const BlogPostDetail: React.FC = () => {
      );
   }
 
+  // If post is loaded and available, render the post details
   console.log("[BlogPostDetail] Rendering: Post available.", post);
   return (
     <div className="flex flex-col min-h-screen bg-gray-100"> {/* This div provides the grey background */}
@@ -166,15 +160,15 @@ const BlogPostDetail: React.FC = () => {
             {/* Render the Portable Text content from 'body' */}
             {/* Apply prose classes and max-w-prose to style and narrow the text block */}
             <div className="prose prose-lg max-w-prose mx-auto"> {/* Kept max-w-prose and mx-auto */}
+               {/* Check if post.body exists before rendering PortableText */}
                {post.body ? (
                    <PortableText value={post.body} />
                ) : (
-                   <p>Contenu de l'article non disponible.</p>
+                   <p>Contenu de l'article non disponible.</p> // Fallback message
                )}
             </div>
 
-            {/* Render the Call-to-Action Banner after the content */}
-            {renderCallToActionBanner()}
+            {/* Removed: Call to renderCallToActionBanner() */}
 
           </CardContent>
         </Card>

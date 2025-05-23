@@ -15,9 +15,8 @@ interface PopupContent {
 }
 
 interface PopupContextType {
-  showPopup: (content: PopupContent) => void; // Keep original showPopup for specific cases if needed
+  showPopup: (content: Omit<PopupContent, 'onCloseCallback'> & { onCloseCallback?: () => void }) => void; // Allow passing callback with specific content
   showRandomPopup: (options?: { onCloseCallback?: () => void }) => void; // Function for random popups, accepts callback
-  // Removed: showMonEspacePreviewPopup: (options?: { onCloseCallback?: () => void }) => void; // New function for Mon Espace preview popup
   hidePopup: () => void;
   popupState: {
     isOpen: boolean;
@@ -73,18 +72,18 @@ const popupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit callbac
     secondaryButtonText: "Continuer",
     secondaryButtonAction: () => {}, // Action to just close the popup
   },
-  // Removed: New entry for Mon Espace preview
-  // {
-  //   id: 'mon_espace_preview',
-  //   title: "Suivez vos programmes et performances !",
-  //   description: "Connectez-vous à votre espace personnel pour retrouver tous vos programmes générés et enregistrer vos performances séance après séance.",
-  //   imageSrc: "/mon-espace-preview.jpg", // Placeholder image - replace with a screenshot of Mon Espace
-  //   imageAlt: "Aperçu de la page Mon Espace",
-  //   primaryButtonText: "Aller à Mon Espace",
-  //   primaryButtonAction: "/mon-espace", // This is a link path
-  //   secondaryButtonText: "Fermer",
-  //   secondaryButtonAction: () => {}, // Action to just close the popup
-  // },
+  // New entry for the blog post CTA popup
+  {
+    id: 'blog_cta_program',
+    title: "Générez votre programme personnalisé gratuitement !",
+    description: "Besoin d'un programme sur mesure pour atteindre vos objectifs ? Utilisez notre générateur de programmes pour créer un plan d'entraînement adapté à vos besoins.",
+    imageSrc: "/program-generator-preview.jpg", // Placeholder image - replace with a relevant image
+    imageAlt: "Aperçu du générateur de programme",
+    primaryButtonText: "Générer mon programme",
+    primaryButtonAction: "/programme", // This is a link path to the program generator page
+    secondaryButtonText: "Fermer",
+    secondaryButtonAction: () => {}, // Action to just close the popup
+  },
 ];
 
 
@@ -94,14 +93,31 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     content: null,
   });
 
-  // Function to show a specific popup (can still be used if needed)
-  const showPopup = useCallback((content: PopupContent) => {
-     setPopupState({ isOpen: true, content });
+  // Function to show a specific popup by its ID or by providing full content
+  const showPopup = useCallback((contentOrId: string | (Omit<PopupContent, 'onCloseCallback'> & { onCloseCallback?: () => void })) => {
+     let contentToShow: PopupContent | undefined;
+
+     if (typeof contentOrId === 'string') {
+         // Find content by ID
+         const foundContent = popupContents.find(p => p.id === contentOrId);
+         if (!foundContent) {
+             console.error(`Popup content with ID "${contentOrId}" not found.`);
+             return; // Don't show popup if content is missing
+         }
+         contentToShow = { ...foundContent, onCloseCallback: undefined }; // Start with found content, no callback initially
+     } else {
+         // Use provided content object
+         contentToShow = contentOrId as PopupContent; // Cast to PopupContent
+     }
+
+     console.log("Showing popup:", contentToShow.id || 'ad-hoc');
+     setPopupState({ isOpen: true, content: contentToShow });
+
   }, []); // Empty dependency array as it doesn't depend on external state
 
   // Function to show a random popup from the predefined list (excluding specific ones like preview)
   const showRandomPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
-      // Filter out specific popups that should only be shown on demand
+      // Filter out specific popups that should only be shown on demand (like blog_cta_program)
       const randomizablePopups = popupContents.filter(p => p.id.startsWith('random_popup_'));
 
       if (randomizablePopups.length === 0) {
@@ -111,7 +127,7 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Select a random popup content
-      const randomIndex = Math.floor(Math.random() * randomizablePopups.length);
+      const randomIndex = Math.floor(Math.random() * randomizablePopablePopups.length);
       const randomContent = randomizablePopups[randomIndex];
 
       console.log("Showing random popup:", randomContent.id);
@@ -119,20 +135,6 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setPopupState({ isOpen: true, content: { ...randomContent, onCloseCallback: options?.onCloseCallback } });
   }, []); // Empty dependency array as it doesn't depend on external state
 
-  // Removed: New function to show the Mon Espace preview popup
-  // const showMonEspacePreviewPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
-  //     const previewContent = popupContents.find(p => p.id === 'mon_espace_preview');
-
-  //     if (!previewContent) {
-  //         console.error("Mon Espace preview popup content not found.");
-  //         options?.onCloseCallback?.(); // Still run callback even if no popup is shown
-  //         return;
-  //     }
-
-  //     console.log("Showing Mon Espace preview popup.");
-  //     // Add the onCloseCallback to the selected content before setting state
-  //     setPopupState({ isOpen: true, content: { ...previewContent, onCloseCallback: options?.onCloseCallback } });
-  // }, []); // Empty dependency array
 
   const hidePopup = useCallback(() => {
      // Get the content of the popup being closed
@@ -148,9 +150,8 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // The value provided by the context
   const contextValue = useMemo(() => ({
-      showPopup, // Expose showSpecificPopup as showPopup
+      showPopup,
       showRandomPopup,
-      // Removed: showMonEspacePreviewPopup, // Expose the new function
       hidePopup,
       popupState,
   }), [showPopup, showRandomPopup, hidePopup, popupState]); // Include all dependencies
