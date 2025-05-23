@@ -1,7 +1,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom'; // Assuming buttons might link to other pages
+import { Link } from 'react-router-dom';
+import MonEspacePreviewTable from './MonEspacePreviewTable'; // Import the preview table component
 
 interface PopupProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface PopupProps {
   primaryButtonAction: () => void | string; // Can be a function or a link path
   secondaryButtonText?: string;
   secondaryButtonAction?: () => void | string; // Can be a function or a link path
+  showPreviewTable?: boolean; // New prop to conditionally show the table
 }
 
 const Popup: React.FC<PopupProps> = ({
@@ -27,73 +29,73 @@ const Popup: React.FC<PopupProps> = ({
   primaryButtonAction,
   secondaryButtonText,
   secondaryButtonAction,
+  showPreviewTable, // Destructure the new prop
 }) => {
 
   const handlePrimaryAction = () => {
     if (typeof primaryButtonAction === 'string') {
-      // If it's a string, it's a link path, handled by the Link component
-      // We still close the popup
-      onClose();
+      onClose(); // Close popup before navigating
     } else {
-      // If it's a function, execute it and close the popup
       primaryButtonAction();
-      onClose();
+      onClose(); // Close popup after action
     }
   };
 
    const handleSecondaryAction = () => {
     if (typeof secondaryButtonAction === 'string') {
-      // If it's a string, it's a link path, handled by the Link component
-      // We still close the popup
-      onClose();
+      onClose(); // Close popup before navigating
     } else if (secondaryButtonAction) {
-      // If it's a function, execute it and close the popup
       secondaryButtonAction();
-      onClose();
+      onClose(); // Close popup after action
     } else {
-       // If no action is provided, just close the popup
-       onClose();
+       onClose(); // Just close if no action
     }
   };
 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] p-6 text-center"> {/* Added text-center */}
+      <DialogContent className="sm:max-w-[425px] p-6 text-center">
         <DialogHeader>
-          {imageSrc && (
-            <img src={imageSrc} alt={imageAlt || title} className="mx-auto mb-4 max-h-48 object-contain" /> // Added styling
+          {/* Only show image if imageSrc is provided AND we are NOT showing the preview table */}
+          {imageSrc && !showPreviewTable && (
+            <img src={imageSrc} alt={imageAlt || title} className="mx-auto mb-4 max-h-48 object-contain" />
           )}
-          <DialogTitle className="text-2xl font-bold text-gray-800">{title}</DialogTitle> {/* Added styling */}
-          {description && <DialogDescription className="text-gray-600 mt-2">{description}</DialogDescription>} {/* Added styling */}
+          <DialogTitle className="text-2xl font-bold text-gray-800">{title}</DialogTitle>
+          {/* Conditionally render description or preview table */}
+          {showPreviewTable ? (
+             // Render the preview table component
+             <div className="mt-4"> {/* Add some top margin */}
+                <MonEspacePreviewTable />
+             </div>
+          ) : (
+             // Render the description if no preview table is requested
+             description && <DialogDescription className="text-gray-600 mt-2">{description}</DialogDescription>
+          )}
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {/* Content goes here if needed, but for this style, header/footer is enough */}
-        </div>
-        <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3 mt-4"> {/* Adjusted layout */}
+        {/* Removed the empty grid div */}
+        <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3 mt-4">
           {typeof primaryButtonAction === 'string' ? (
-             // Corrected usage: Pass Link directly as child and move classes to Link
              <Button asChild>
-               <Link to={primaryButtonAction} onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+               <Link to={primaryButtonAction} onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold">
                  {primaryButtonText}
                </Link>
              </Button>
           ) : (
-            <Button onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+            <Button onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold">
               {primaryButtonText}
             </Button>
           )}
 
           {secondaryButtonText && (
             typeof secondaryButtonAction === 'string' ? (
-              // Corrected usage: Pass Link directly as child and move classes to Link
               <Button asChild variant="outline">
-                <Link to={secondaryButtonAction} onClick={handleSecondaryAction} className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+                <Link to={secondaryButtonAction} onClick={handleSecondaryAction} className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold">
                   {secondaryButtonText}
                 </Link>
               </Button>
             ) : (
-              <Button onClick={handleSecondaryAction} variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+              <Button onClick={handleSecondaryAction} variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold">
                 {secondaryButtonText}
               </Button>
             )

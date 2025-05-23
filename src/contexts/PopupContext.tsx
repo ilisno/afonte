@@ -12,6 +12,7 @@ interface PopupContent {
   secondaryButtonAction?: () => void | string; // Secondary action can be a function or a link path
   id: string; // Unique ID for this specific popup instance/type
   onCloseCallback?: () => void; // Callback to run when the popup is closed
+  showPreviewTable?: boolean; // New property to indicate showing the preview table
 }
 
 interface PopupContextType {
@@ -72,17 +73,17 @@ const popupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit callbac
     secondaryButtonText: "Continuer",
     secondaryButtonAction: () => {}, // Action to just close the popup
   },
-  // New entry for the blog post CTA popup
+  // Updated entry for the blog post CTA popup
   {
     id: 'blog_cta_program',
-    title: "Générez votre programme personnalisé gratuitement !",
-    description: "Besoin d'un programme sur mesure pour atteindre vos objectifs ? Utilisez notre générateur de programmes pour créer un plan d'entraînement adapté à vos besoins.",
-    imageSrc: "/program-generator-preview.jpg", // Placeholder image - replace with a relevant image
-    imageAlt: "Aperçu du générateur de programme",
+    title: "Mon programme musculation personnalisé gratuitement !", // Updated title
+    // Removed imageSrc and imageAlt
+    description: "Besoin d'un programme sur mesure pour atteindre vos objectifs ? Utilisez notre générateur de programmes pour créer un plan d'entraînement adapté à vos besoins.", // Keep description for now, but it will be replaced by the table
     primaryButtonText: "Générer mon programme",
     primaryButtonAction: "/programme", // This is a link path to the program generator page
     secondaryButtonText: "Fermer",
     secondaryButtonAction: () => {}, // Action to just close the popup
+    showPreviewTable: true, // Add flag to show the preview table
   },
 ];
 
@@ -127,7 +128,7 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Select a random popup content
-      const randomIndex = Math.floor(Math.random() * randomizablePopablePopups.length);
+      const randomIndex = Math.floor(Math.random() * randomizablePopups.length);
       const randomContent = randomizablePopups[randomIndex];
 
       console.log("Showing random popup:", randomContent.id);
@@ -172,6 +173,7 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           primaryButtonAction={popupState.content.primaryButtonAction} // Pass the action directly (can be string or function)
           secondaryButtonText={popupState.content.secondaryButtonText}
           secondaryButtonAction={popupState.content.secondaryButtonAction} // Pass the action directly (can be string or function)
+          showPreviewTable={popupState.content.showPreviewTable} // Pass the new property
         />
       )}
     </PopupContext.Provider>
