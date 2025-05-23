@@ -38,19 +38,24 @@ const Index: React.FC = () => {
            <Link to="/programme">Créer mon programme</Link>
         </Button>
 
-        {/* Mon Espace Static Preview Section (using the new component) */}
+        {/* Mon Espace Static Preview Section */}
         <section className="mt-16 w-full max-w-4xl text-center">
-            {/* Updated Section Title */}
+            {/* Title and description for the table preview */}
             <h2 className="text-3xl font-bold text-gray-800 mb-8">
-                Tes performances après nous avoir rejoint
+                Suivez vos programmes et performances !
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                 Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.
             </p>
-            {/* Render the new preview component */}
-            <div className="w-full flex justify-center mb-8"> {/* Wrapper to center the card, added mb-8 */}
+            {/* Render the table preview component */}
+            <div className="w-full flex justify-center mb-12"> {/* Wrapper to center the card, increased mb */}
                <MonEspacePreviewTable />
             </div>
+
+            {/* Title specifically for the chart */}
+            <h3 className="text-2xl font-bold text-gray-800 mb-8"> {/* Changed to h3 and slightly smaller */}
+                Tes performances après nous avoir rejoint
+            </h3>
 
             {/* Add the animated chart here */}
             <div className="w-full max-w-3xl mx-auto mb-8"> {/* Wrapper for the chart, added mb-8 */}
@@ -72,7 +77,7 @@ const Index: React.FC = () => {
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
 
 
-        {/* Benefits Section 1 (Moved Down) */}
+        {/* Benefits Section 1 */}
         <section className="mt-16 w-full max-w-4xl">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">
             Le coaching réinventé, c'est surtout
