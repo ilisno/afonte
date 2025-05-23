@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'; // Using shadcn Button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Using shadcn Card
 import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell } from 'lucide-react'; // Importing icons
 import MonEspacePreviewTable from '@/components/MonEspacePreviewTable'; // Import the new component
+import StrengthProgressChart from '@/components/StrengthProgressChart'; // Import the new chart component
 
 const Index: React.FC = () => {
 
@@ -37,7 +38,7 @@ const Index: React.FC = () => {
            <Link to="/programme">Créer mon programme</Link>
         </Button>
 
-        {/* Mon Espace Static Preview Section (Moved Here) */}
+        {/* Mon Espace Static Preview Section (using the new component) */}
         <section className="mt-16 w-full max-w-4xl text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-8">
                 Suivez vos progrès dans votre espace personnel
@@ -45,10 +46,16 @@ const Index: React.FC = () => {
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                 Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.
             </p>
-            {/* Render the preview component */}
-            <div className="w-full flex justify-center"> {/* Wrapper to center the card */}
+            {/* Render the new preview component */}
+            <div className="w-full flex justify-center mb-8"> {/* Wrapper to center the card, added mb-8 */}
                <MonEspacePreviewTable />
             </div>
+
+            {/* Add the animated chart here */}
+            <div className="w-full max-w-3xl mx-auto mb-8"> {/* Wrapper for the chart, added mb-8 */}
+                <StrengthProgressChart />
+            </div>
+
              <div className="mt-8">
                 <Button
                    asChild
