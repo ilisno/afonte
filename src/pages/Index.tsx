@@ -36,9 +36,9 @@ const Index: React.FC = () => {
         </Button>
 
         {/* Guarantee Text */}
-        <p className="mt-4 text-gray-600 text-sm italic">
+        {/* Removed: <p className="mt-4 text-gray-600 text-sm italic">
           Résultats garantis, satisfait ou <strong>100% remboursé</strong>
-        </p>
+        </p> */}
 
         {/* Separator Line */}
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
