@@ -480,7 +480,6 @@ const MonEspace: React.FC = () => {
         <Card className={cn(
           "w-full shadow-lg",
           isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl" // Full width and no rounded corners on mobile when program is selected
-          // Removed: isMobile && selectedUserProgram && "px-4" // Removed this conditional padding on the Card
         )}>
           <CardHeader className="text-center">
              {selectedUserProgram ? (
@@ -507,7 +506,6 @@ const MonEspace: React.FC = () => {
                 {selectedUserProgram.program.weeks.map((week) => (
                   <AccordionItem value={`week-${week.weekNumber}`} key={week.weekNumber}>
                     <AccordionTrigger className="text-lg font-semibold text-gray-800 px-4">Semaine {week.weekNumber}</AccordionTrigger> {/* Added px-4 */}
-                    {/* Removed px-4 from AccordionContent when on mobile and program is selected */}
                     <AccordionContent className={cn("py-4", isMobile && selectedUserProgram ? "px-0" : "px-4")}>
                       <div className="space-y-6"> {/* Increased spacing */}
                         {week.days.map((day) => (
@@ -534,7 +532,8 @@ const MonEspace: React.FC = () => {
                                               <AccordionContent className="p-4 pt-0 space-y-3">
                                                  {setsArray.map((setIndex) => (
                                                     <div key={setIndex} className="flex items-center space-x-2">
-                                                       <span className="font-semibold w-10 flex-shrink-0">Série {setIndex + 1}:</span>
+                                                       {/* Removed w-10 from the span */}
+                                                       <span className="font-semibold flex-shrink-0">Série {setIndex + 1}:</span>
                                                        <Input
                                                           type="text"
                                                           placeholder={exercise.reps}
