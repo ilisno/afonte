@@ -51,26 +51,6 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Veuillez entrer une adresse email valide.",
   }).or(z.literal("")), // Allow empty string or a valid email
-  // New 1RM fields
-  squat1RM: z.coerce.number().min(0, { message: "Doit être un nombre positif." }).optional(),
-  bench1RM: z.coerce.number().min(0, { message: "Doit être un nombre positif." }).optional(),
-  deadlift1RM: z.coerce.number().min(0, { message: "Doit être un nombre positif." }).optional(),
-  ohp1RM: z.coerce.number().min(0, { message: "Doit être un nombre positif." }).optional(),
-}).refine((data) => {
-  // If objective is Powerlifting or Powerbuilding, 1RMs must be provided and > 0
-  if (data.objectif === "Powerlifting" || data.objectif === "Powerbuilding") {
-    return (
-      data.squat1RM !== undefined && data.squat1RM > 0 &&
-      data.bench1RM !== undefined && data.bench1RM > 0 &&
-      data.deadlift1RM !== undefined && data.deadlift1RM > 0 &&
-      data.ohp1RM !== undefined && data.ohp1RM > 0
-    );
-  }
-  // Otherwise, no specific validation needed for 1RMs
-  return true;
-}, {
-  message: "Veuillez fournir vos 1RM pour le Squat, Développé Couché, Soulevé de Terre et Overhead Press (doivent être supérieurs à 0) pour les objectifs Powerlifting ou Powerbuilding.",
-  path: ["squat1RM"], // Attach the error message to the first 1RM field
 });
 
 
@@ -94,18 +74,8 @@ const ProgrammeGenerator: React.FC = () => {
       dureeMax: 60,
       materiel: [],
       email: session?.user?.email || "", // Pre-fill email if logged in
-      // Default values for new 1RM fields
-      squat1RM: undefined,
-      bench1RM: undefined,
-      deadlift1RM: undefined,
-      ohp1RM: undefined,
     },
   });
-
-  // Watch the 'objectif' field to conditionally show 1RM inputs
-  const selectedObjectif = form.watch('objectif');
-  const show1RMFields = selectedObjectif === 'Powerlifting' || selectedObjectif === 'Powerbuilding';
-
 
   // Update default email value if session changes after initial render
   React.useEffect(() => {
@@ -165,7 +135,7 @@ const ProgrammeGenerator: React.FC = () => {
                    {
                        user_id: session.user.id,
                        program: program, // Save the full program JSON
-                       duration_weeks: program.weeks.length, // Assuming 4 weeks for now for 5/3/1, or calculated for generic
+                       duration_weeks: program.weeks.length, // Assuming 4 weeks for now
                        days_per_week: values.joursEntrainement,
                        program_name: program.title, // Use the generated title as default name
                    },
@@ -247,7 +217,6 @@ const ProgrammeGenerator: React.FC = () => {
                                   <TableHead>Exercice</TableHead>
                                   <TableHead>Séries</TableHead>
                                   <TableHead>Répétitions</TableHead>
-                                  <TableHead>Poids (kg)</TableHead> {/* Added Weight column */}
                                   <TableHead>Notes</TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -258,8 +227,6 @@ const ProgrammeGenerator: React.FC = () => {
                                     <TableCell>{exercise.sets}</TableCell>
                                     <TableCell>{exercise.reps}</TableCell>
                                     <TableCell>{exercise.notes}</TableCell>
-                                    {/* Display weight if available */}
-                                    <TableCell>{exercise.weight ? `${exercise.weight} kg` : '-'}</TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -343,69 +310,6 @@ const ProgrammeGenerator: React.FC = () => {
                     </FormItem>
                   )}
                 />
-
-                {/* 1RM Fields (Conditionally rendered) */}
-                {show1RMFields && (
-                   <div className="space-y-6 border-t pt-6"> {/* Added border-t and padding */}
-                      <h3 className="text-xl font-bold text-gray-800">Vos 1RM (Max sur 1 répétition)</h3>
-                       <FormDescription className="text-gray-600">
-                          Entrez vos meilleures performances actuelles pour ces exercices.
-                       </FormDescription>
-                      <FormField
-                         control={form.control}
-                         name="squat1RM"
-                         render={({ field }) => (
-                           <FormItem>
-                             <FormLabel className="text-lg font-semibold text-gray-800">Squat (kg)</FormLabel>
-                             <FormControl>
-                               <Input type="number" placeholder="Ex: 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} /> {/* Use parseFloat and handle empty input */}
-                             </FormControl>
-                             <FormMessage />
-                           </FormItem>
-                         )}
-                       />
-                       <FormField
-                         control={form.control}
-                         name="bench1RM"
-                         render={({ field }) => (
-                           <FormItem>
-                             <FormLabel className="text-lg font-semibold text-gray-800">Développé Couché (kg)</FormLabel>
-                             <FormControl>
-                               <Input type="number" placeholder="Ex: 80" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
-                             </FormControl>
-                             <FormMessage />
-                           </FormItem>
-                         )}
-                       />
-                       <FormField
-                         control={form.control}
-                         name="deadlift1RM"
-                         render={({ field }) => (
-                           <FormItem>
-                             <FormLabel className="text-lg font-semibold text-gray-800">Soulevé de Terre (kg)</FormLabel>
-                             <FormControl>
-                               <Input type="number" placeholder="Ex: 150" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
-                             </FormControl>
-                             <FormMessage />
-                           </FormItem>
-                         )}
-                       />
-                       <FormField
-                         control={form.control}
-                         name="ohp1RM"
-                         render={({ field }) => (
-                           <FormItem>
-                             <FormLabel className="text-lg font-semibold text-gray-800">Overhead Press (kg)</FormLabel>
-                             <FormControl>
-                               <Input type="number" placeholder="Ex: 50" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
-                             </FormControl>
-                             <FormMessage />
-                           </FormItem>
-                         )}
-                       />
-                   </div>
-                )}
-
 
                 {/* Niveau d'expérience */}
                 <FormField
@@ -511,7 +415,7 @@ const ProgrammeGenerator: React.FC = () => {
                     <FormItem>
                       <FormLabel className="text-lg font-semibold text-gray-800">Jours d'entraînement / semaine</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="3" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || undefined)} /> {/* Use parseInt and handle empty input */}
+                        <Input type="number" placeholder="3" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -526,7 +430,7 @@ const ProgrammeGenerator: React.FC = () => {
                     <FormItem>
                       <FormLabel className="text-lg font-semibold text-gray-800">Durée max par séance (minutes)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="60" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || undefined)} /> {/* Use parseInt and handle empty input */}
+                        <Input type="number" placeholder="60" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
