@@ -10,13 +10,29 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils'; // Assuming cn utility is available
 
-// Static data for the illustrative chart
-const data = [
-  { name: 'Semaine 1', force: 10 },
-  { name: 'Semaine 2', force: 25 },
-  { name: 'Semaine 3', force: 40 },
-  { name: 'Semaine 4', force: 55 },
-];
+// Generate more realistic static data (100 points)
+const generateRealisticData = (numPoints: number) => {
+  const data = [];
+  let currentValue = 50; // Starting value
+  const progressRate = 0.5; // Average increase per point
+  const volatility = 5; // How much the value can fluctuate
+
+  for (let i = 0; i < numPoints; i++) {
+    // Add general progress
+    currentValue += progressRate + (Math.random() - 0.5) * volatility;
+
+    // Ensure value doesn't go below a certain point (e.g., 10)
+    currentValue = Math.max(10, currentValue);
+
+    data.push({
+      name: `Point ${i + 1}`, // Simple naming for points
+      perfs: Math.round(currentValue), // Use 'perfs' key and round to integer
+    });
+  }
+  return data;
+};
+
+const data = generateRealisticData(100); // Generate 100 data points
 
 const StrengthProgressChart: React.FC = () => {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -51,7 +67,7 @@ const StrengthProgressChart: React.FC = () => {
 
 
   return (
-    <div ref={chartRef} className={cn("w-full h-64 md:h-80", !isVisible && "opacity-0")}> {/* Added opacity transition */}
+    <div ref={chartRef} className={cn("w-full h-64 md:h-80", !isVisible && "opacity-0 transition-opacity duration-500")}> {/* Added opacity transition */}
       {/* Render the chart only when visible */}
       {isVisible && (
         <ResponsiveContainer width="100%" height="100%">
@@ -59,23 +75,31 @@ const StrengthProgressChart: React.FC = () => {
             data={data}
             margin={{
               top: 5,
-              right: 30,
-              left: 20,
+              right: 10, // Reduced right margin
+              left: 10, // Reduced left margin
               bottom: 5,
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" /> {/* Lighter grid */}
-            <XAxis dataKey="name" stroke="#555" /> {/* Darker axis labels */}
-            <YAxis stroke="#555" label={{ value: 'Progression (Unités Arbitraires)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#555' } }} /> {/* Added Y axis label */}
+            {/* Removed CartesianGrid for a cleaner look */}
+            {/* <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" /> */}
+            <XAxis dataKey="name" hide={true} /> {/* Hide X axis labels for simplicity */}
+            <YAxis
+               dataKey="perfs" // Use the new data key
+               stroke="#555"
+               label={{ value: 'Tes perfs', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#555' } }} // Changed Y axis label
+               tickLine={false} // Hide Y axis tick lines
+               axisLine={false} // Hide Y axis line
+            />
             <Tooltip />
             {/* Animated Line */}
             <Line
               type="monotone"
-              dataKey="force"
+              dataKey="perfs" // Use the new data key
               stroke="hsl(var(--sbf-red))" // Use your custom red color
               strokeWidth={3} // Thicker line
-              dot={{ stroke: 'hsl(var(--sbf-red))', strokeWidth: 2, r: 4 }} // Styled dots
-              activeDot={{ r: 6 }} // Larger dot on hover
+              dot={false} // Hide dots for a smoother curve
+              // dot={{ stroke: 'hsl(var(--sbf-red))', strokeWidth: 2, r: 4 }} // Styled dots
+              // activeDot={{ r: 6 }} // Larger dot on hover
               animationDuration={1500} // Animation duration
               animationEasing="ease-out" // Animation easing
             />
