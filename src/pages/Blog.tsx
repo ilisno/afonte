@@ -106,48 +106,24 @@ const Blog: React.FC = () => {
         {!loading && !error && posts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
-              // Wrap the content inside the Card with a Link
-              <Card key={post._id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"> {/* Added cursor-pointer */}
-                {/* Link wraps the image and header */}
-                {post.slug?.current && post.category?.slug?.current ? (
-                  <Link to={`/${post.category.slug.current}/${post.slug.current}`} className="flex flex-col h-full"> {/* Added flex-col h-full to make link cover card content */}
-                    {post.mainImage?.asset?.url && ( // Check if url exists
-                        <img
-                          src={post.mainImage.asset.url} // Use the correct path for the URL
-                          alt={post.mainImage.alt || post.title} // Use alt text or title
-                          className="w-full h-48 object-cover" // Fixed height for images
-                        />
-                      )}
-                    <CardHeader className="flex-grow p-4"> {/* Added flex-grow */}
-                      <CardTitle className="text-lg font-semibold text-gray-800 text-left mb-2">{post.title}</CardTitle>
-                      <p className="text-sm text-gray-500 text-left">
-                        {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date inconnue'}
-                        {post.category?.title && ` • ${post.category.title}`} {/* Use category title */}
-                      </p>
-                    </CardHeader>
-                  </Link>
-                ) : (
-                   // Fallback if slug or category slug is missing (shouldn't happen with valid data)
-                   <>
-                     {post.mainImage?.asset?.url && (
-                         <img
-                           src={post.mainImage.asset.url}
-                           alt={post.mainImage.alt || post.title}
-                           className="w-full h-48 object-cover"
-                         />
-                       )}
-                     <CardHeader className="flex-grow p-4">
-                       <CardTitle className="text-lg font-semibold text-gray-800 text-left mb-2">{post.title}</CardTitle>
-                       <p className="text-sm text-gray-500 text-left">
-                         {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date inconnue'}
-                         {post.category?.title && ` • ${post.category.title}`}
-                       </p>
-                     </CardHeader>
-                   </>
-                )}
+              <Card key={post._id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                 {post.mainImage?.asset?.url && ( // Check if url exists
+                    <img
+                      src={post.mainImage.asset.url} // Use the correct path for the URL
+                      alt={post.mainImage.alt || post.title} // Use alt text or title
+                      className="w-full h-48 object-cover" // Fixed height for images
+                    />
+                  )}
+                <CardHeader className="flex-grow p-4"> {/* Added flex-grow */}
+                  <CardTitle className="text-lg font-semibold text-gray-800 text-left mb-2">{post.title}</CardTitle>
+                  <p className="text-sm text-gray-500 text-left">
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date inconnue'}
+                    {post.category?.title && ` • ${post.category.title}`} {/* Use category title */}
+                  </p>
+                </CardHeader>
                  <CardContent className="p-4 pt-0"> {/* Adjusted padding */}
                    {post.excerpt && <p className="text-gray-700 text-left mb-4">{post.excerpt}</p>} {/* Display excerpt if available */}
-                   {/* Keep the "Lire la suite" link as well */}
+                   {/* Link to the individual post page - assuming a route structure like /:categorySlug/:postSlug */}
                    {post.slug?.current && post.category?.slug?.current && (
                      <Link to={`/${post.category.slug.current}/${post.slug.current}`} className="text-sbf-red hover:underline font-semibold flex items-center justify-start"> {/* Adjusted link color and alignment */}
                        Lire la suite →
