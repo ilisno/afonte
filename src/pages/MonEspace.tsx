@@ -502,13 +502,14 @@ const MonEspace: React.FC = () => {
                     <AccordionContent>
                       <div className="space-y-6"> {/* Increased spacing */}
                         {week.days.map((day) => (
-                          <div key={day.dayNumber} className="border rounded-md p-4 bg-gray-50"> {/* Added border, padding, background */}
-                            <h4 className="text-lg font-bold mb-4 text-gray-800">Jour {day.dayNumber}</h4> {/* Increased font size */}
+                          // Adjusted styling for the day container
+                          <div key={day.dayNumber} className="border rounded-md bg-gray-50 w-full"> {/* Removed p-4, added w-full */}
+                            <h4 className="text-lg font-bold mb-4 text-gray-800 px-4 pt-4">Jour {day.dayNumber}</h4> {/* Added px-4 pt-4 */}
 
                             {/* Conditional rendering based on isMobile */}
                             {isMobile ? (
                                // Mobile View: Accordions for each exercise
-                               <div className="space-y-4">
+                               <div className="space-y-4 px-4 pb-4"> {/* Added px-4 pb-4 */}
                                   {day.exercises.map((exercise, exerciseIndex) => {
                                      const numberOfSets = parseInt(exercise.sets, 10) || 0;
                                      const setsArray = Array.from({ length: numberOfSets }, (_, i) => i);
@@ -654,7 +655,7 @@ const MonEspace: React.FC = () => {
 
 
                             {/* Save button for the day */}
-                            <div className="mt-4 text-right">
+                            <div className="mt-4 text-right px-4 pb-4"> {/* Added px-4 pb-4 */}
                                 <Button
                                    onClick={() => handleSaveDayWorkout(week.weekNumber, day.dayNumber)}
                                    disabled={isSavingWorkout}
