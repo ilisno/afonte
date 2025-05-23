@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { sanityClient } from '@/integrations/sanity/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { PortableText } from '@portabletext/react';
+import { PortableText } from '@portabletext/react'; // Import PortableText
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDescriptionShadcn } from "@/components/ui/card";
 import { usePopup } from '@/contexts/PopupContext';
@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 const BlogPostDetail: React.FC = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<any>(null); // Keep 'any' for now as Portable Text structure can vary
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showRandomPopup } = usePopup();
@@ -20,27 +20,27 @@ const BlogPostDetail: React.FC = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        // Ensure the query fetches the 'content' field
         const query = `*[_type == "post" && slug.current == $slug]{
           _id,
           title,
           slug,
-          content,
+          content, // Fetch the Portable Text content
           "categories": categories[]->title,
           "author": author->{name, image}
         }`;
         const params = { slug: postSlug };
         const result = await sanityClient.fetch(query, params);
         if (result.length === 0) {
-          // If no post is found, set post to null explicitly and stop loading
           setPost(null);
-          setError("Article non trouvé."); // Set a specific error message
+          setError("Article non trouvé.");
         } else {
           setPost(result[0]);
         }
       } catch (err) {
         setError("Une erreur est survenue lors de la récupération de l'article.");
         console.error("Error fetching post:", err);
-        setPost(null); // Ensure post is null on error
+        setPost(null);
       } finally {
         setIsLoading(false);
       }
@@ -51,23 +51,21 @@ const BlogPostDetail: React.FC = () => {
 
   // Function to handle the click on the "Générer mon programme" button
   const handleGenerateProgramClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault(); // Prevent default navigation
+    event.preventDefault();
     console.log("Générer mon programme clicked");
 
-    // Define a callback function that navigates after the popup is closed
     const handlePopupCloseAndNavigate = () => {
         console.log("Popup closed, navigating to ProgrammeGenerator...");
         navigate('/programme');
     };
 
-    // Show a random popup. When it's closed, the callback will run.
     showRandomPopup({ onCloseCallback: handlePopupCloseAndNavigate });
   };
 
   // Function to render the call-to-action banner
   const renderCallToActionBanner = () => {
     return (
-      <Card className="bg-sbf-red text-white p-6 mb-8">
+      <Card className="bg-sbf-red text-white p-6 my-8"> {/* Added margin-top and margin-bottom */}
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Générez votre programme personnalisé gratuitement !</CardTitle>
           <CardDescriptionShadcn className="text-lg">
@@ -83,34 +81,6 @@ const BlogPostDetail: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
-    );
-  };
-
-  // Function to split content into sections and insert the banner
-  // Added a check to ensure post.content is a string before splitting
-  const renderContentWithBanner = (content: string | null | undefined) => {
-    if (!content || typeof content !== 'string') {
-        return null; // Or render a fallback message/component
-    }
-    const contentArray = content.split('\n');
-    const oneThirdIndex = Math.ceil(contentArray.length / 3);
-    const firstPart = contentArray.slice(0, oneThirdIndex);
-    const secondPart = contentArray.slice(oneThirdIndex);
-
-    return (
-      <>
-        <div className="prose prose-lg max-w-none">
-          {firstPart.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </div>
-        {renderCallToActionBanner()}
-        <div className="prose prose-lg max-w-none">
-          {secondPart.map((paragraph, index) => (
-            <p key={index + oneThirdIndex}>{paragraph}</p>
-          ))}
-        </div>
-      </>
     );
   };
 
@@ -139,13 +109,12 @@ const BlogPostDetail: React.FC = () => {
     );
   }
 
-  // If not loading and no error, but post is still null (e.g., post not found)
   if (!post) {
      return (
        <div className="flex flex-col min-h-screen bg-gray-100">
          <Header />
          <main className="flex-grow container mx-auto px-4 py-12 text-center">
-           <p>Article non trouvé.</p> {/* Or use the error message if set */}
+           <p>Article non trouvé.</p>
          </main>
          <Footer />
        </div>
@@ -157,9 +126,17 @@ const BlogPostDetail: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-        {/* Pass post.content to the rendering function */}
-        {renderContentWithBanner(post.content)}
+        <h1 className="text-4xl font-bold mb-8 text-gray-800">{post.title}</h1> {/* Increased bottom margin */}
+
+        {/* Render the Portable Text content */}
+        {/* Apply prose classes to style the content */}
+        <div className="prose prose-lg max-w-none mx-auto"> {/* Added mx-auto to center if max-width was applied */}
+           <PortableText value={post.content} />
+        </div>
+
+        {/* Render the Call-to-Action Banner after the content */}
+        {renderCallToActionBanner()}
+
       </main>
       <Footer />
     </div>
