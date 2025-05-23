@@ -479,7 +479,8 @@ const MonEspace: React.FC = () => {
       )}>
         <Card className={cn(
           "w-full shadow-lg",
-          isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl" // Full width and no rounded corners on mobile when program is selected
+          isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl", // Full width and no rounded corners on mobile when program is selected
+          isMobile && selectedUserProgram && "px-4" // Add back horizontal padding to the Card itself on mobile when program is selected
         )}>
           <CardHeader className="text-center">
              {selectedUserProgram ? (
@@ -506,7 +507,8 @@ const MonEspace: React.FC = () => {
                 {selectedUserProgram.program.weeks.map((week) => (
                   <AccordionItem value={`week-${week.weekNumber}`} key={week.weekNumber}>
                     <AccordionTrigger className="text-lg font-semibold text-gray-800 px-4">Semaine {week.weekNumber}</AccordionTrigger> {/* Added px-4 */}
-                    <AccordionContent className="px-4"> {/* Added px-4 */}
+                    {/* Removed px-4 from AccordionContent when on mobile and program is selected */}
+                    <AccordionContent className={cn("py-4", isMobile && selectedUserProgram ? "px-0" : "px-4")}>
                       <div className="space-y-6"> {/* Increased spacing */}
                         {week.days.map((day) => (
                           // Adjusted styling for the day container
