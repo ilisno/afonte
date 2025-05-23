@@ -554,6 +554,8 @@ const MonEspace: React.FC = () => {
                                                               className="w-20 text-center"
                                                            />
                                                            <span className="flex-shrink-0">Reps</span>
+                                                           {/* Display AMRAP next to Reps input on mobile */}
+                                                           {setDetail?.isAmrap && <span className="text-sbf-red font-bold ml-1">(AMRAP)</span>}
                                                            <Input
                                                               type="number"
                                                               placeholder={placeholderWeight} // Use calculated weight as placeholder for 5/3/1
@@ -575,7 +577,6 @@ const MonEspace: React.FC = () => {
                                                               className="w-20 text-center"
                                                            />
                                                            <span className="flex-shrink-0">kg</span>
-                                                           {setDetail?.isAmrap && <span className="text-sbf-red font-bold ml-2">(AMRAP)</span>} {/* Highlight AMRAP */}
                                                         </div>
                                                     );
                                                  })}
