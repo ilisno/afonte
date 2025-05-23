@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { sanityClient } from '@/integrations/sanity/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-// Removed: import { PortableText } from '@portabletext/react'; // No longer needed
+import { PortableText } from '@portabletext/react'; // Re-import PortableText
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDescriptionShadcn } from "@/components/ui/card";
 import { usePopup } from '@/contexts/PopupContext';
@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom';
 
 const BlogPostDetail: React.FC = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>();
-  // Assuming post.body is now a string based on schema change
-  const [post, setPost] = useState<any>(null); // Keep 'any' for now, but expect body to be string
+  // Expect post.body to be Portable Text (array of blocks)
+  const [post, setPost] = useState<any>(null); // Keep 'any' as Portable Text structure can vary
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showRandomPopup } = usePopup();
@@ -32,7 +32,7 @@ const BlogPostDetail: React.FC = () => {
           _id,
           title,
           slug,
-          body, // Fetch the content from the 'body' field
+          body, // Fetch the content from the 'body' field (Portable Text)
           "categories": categories[]->title,
           "author": author->{name, image}
         }`;
@@ -152,14 +152,14 @@ const BlogPostDetail: React.FC = () => {
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8 text-gray-800">{post.title}</h1> {/* Increased bottom margin */}
 
-        {/* Render the plain text content from 'body' by splitting lines */}
+        {/* Render the Portable Text content from 'body' */}
         {/* Apply prose classes to style the content */}
         <div className="prose prose-lg max-w-none mx-auto"> {/* Added mx-auto to center if max-width was applied */}
-           {/* Check if post.body exists and is a string before splitting */}
-           {typeof post.body === 'string' && post.body.length > 0 ? (
-               post.body.split('\n').map((para, idx) => <p key={idx}>{para}</p>)
+           {/* Check if post.body exists before rendering PortableText */}
+           {post.body ? (
+               <PortableText value={post.body} />
            ) : (
-               <p>Contenu de l'article non disponible ou vide.</p> // Fallback message
+               <p>Contenu de l'article non disponible.</p> // Fallback message
            )}
         </div>
 
