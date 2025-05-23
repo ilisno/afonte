@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://zvpdaeogjwstsyokfriq.supabase.co/</loc>
+    <lastmod>2024-08-30</lastmod> <!-- Replace with the last modification date -->
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://zvpdaeogjwstsyokfriq.supabase.co/programme</loc>
+    <lastmod>2024-08-30</lastmod> <!-- Replace with the last modification date -->
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://zvpdaeogjwstsyokfriq.supabase.co/blog</loc>
+    <lastmod>2024-08-30</lastmod> <!-- Replace with the last modification date -->
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+   <url>
+    <loc>https://zvpdaeogjwstsyokfriq.supabase.co/coach-virtuel</loc>
+    <lastmod>2024-08-30</lastmod> <!-- Replace with the last modification date -->
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+   <!-- Note: Dynamic blog post URLs (/:categorySlug/:postSlug) are not included in this static sitemap. -->
+   <!-- To include dynamic content, consider generating the sitemap during the build process or serving it dynamically. -->
+</urlset>
