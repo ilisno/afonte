@@ -72,8 +72,11 @@ const Popup: React.FC<PopupProps> = ({
         </div>
         <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3 mt-4"> {/* Adjusted layout */}
           {typeof primaryButtonAction === 'string' ? (
-             <Button asChild className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
-               <Link to={primaryButtonAction} onClick={handlePrimaryAction}>{primaryButtonText}</Link>
+             // Corrected usage: Pass Link directly as child and move classes to Link
+             <Button asChild>
+               <Link to={primaryButtonAction} onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+                 {primaryButtonText}
+               </Link>
              </Button>
           ) : (
             <Button onClick={handlePrimaryAction} className="bg-sbf-red text-white hover:bg-red-700 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
@@ -83,8 +86,11 @@ const Popup: React.FC<PopupProps> = ({
 
           {secondaryButtonText && (
             typeof secondaryButtonAction === 'string' ? (
-              <Button asChild variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
-                <Link to={secondaryButtonAction} onClick={handleSecondaryAction}>{secondaryButtonText}</Link>
+              // Corrected usage: Pass Link directly as child and move classes to Link
+              <Button asChild variant="outline">
+                <Link to={secondaryButtonAction} onClick={handleSecondaryAction} className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}
+                  {secondaryButtonText}
+                </Link>
               </Button>
             ) : (
               <Button onClick={handleSecondaryAction} variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200 text-base px-6 py-3 rounded-md font-semibold"> {/* Added styling */}

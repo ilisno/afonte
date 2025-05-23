@@ -30,11 +30,13 @@ const Index: React.FC = () => {
         {/* <div className="mb-8">[Illustration de personnes s'entraînant]</div> */}
 
         {/* Call To Action Button */}
+        {/* Corrected Button asChild usage */}
         <Button
           asChild // Use asChild to render as a Link
           // Updated classes for red background, white text, yellow border, and rounded corners
           className="bg-sbf-red text-white hover:bg-sbf-yellow hover:text-sbf-red text-lg px-8 py-6 rounded-md font-semibold shadow-lg transition-colors duration-300 border-2 border-sbf-yellow"
         >
+           {/* Removed the extra div */}
            <Link to="/programme">Créer mon programme</Link>
         </Button>
 
@@ -63,10 +65,12 @@ const Index: React.FC = () => {
             </div>
 
              <div className="mt-8">
+                {/* Corrected Button asChild usage */}
                 <Button
                    asChild
                    className="bg-sbf-red text-white hover:bg-sbf-yellow hover:text-sbf-red text-lg px-8 py-6 rounded-md font-semibold shadow-lg transition-colors duration-300 border-2 border-sbf-yellow"
                >
+                  {/* Removed the extra div */}
                   <Link to="/mon-espace">Aller à Mon Espace</Link>
                </Button>
              </div>

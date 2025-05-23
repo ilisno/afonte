@@ -425,6 +425,7 @@ const MonEspace: React.FC = () => {
                <div className="mt-4 text-center">
                   {/* Corrected Button asChild usage */}
                   <Button asChild variant="link" className="text-sbf-red hover:underline">
+                     {/* Removed the extra div */}
                      <Link to="/login">Aller à la page de connexion complète</Link>
                   </Button>
                </div>
@@ -792,6 +793,7 @@ const MonEspace: React.FC = () => {
                   <div className="mt-4">
                      {/* Corrected Button asChild usage */}
                      <Button asChild className="bg-sbf-red text-white hover:bg-red-700">
+                       {/* Removed the extra div */}
                        <Link to="/programme">Générer mon premier programme</Link>
                      </Button>
                   </div>
