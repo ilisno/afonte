@@ -75,9 +75,9 @@ function Login() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      // If a session exists (user is logged in), redirect to the home page
+      // If a session exists (user is logged in), redirect to the Mon Espace page
       if (session) {
-        navigate('/');
+        navigate('/mon-espace'); // Changed redirection path
       }
     });
 
@@ -105,7 +105,7 @@ function Login() {
               },
             }}
             theme="light" // Use light theme
-            redirectTo={window.location.origin + '/'} // Redirect to home after login
+            redirectTo={window.location.origin + '/mon-espace'} // Changed redirection path for Auth UI
             localization={{
               variables: frenchTranslations,
             }}
