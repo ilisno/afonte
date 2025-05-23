@@ -473,8 +473,14 @@ const MonEspace: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-12 flex justify-center">
-        <Card className="w-full max-w-3xl shadow-lg"> {/* Increased max-w for better layout */}
+      <main className={cn(
+        "flex-grow py-12 flex justify-center",
+        isMobile && selectedUserProgram ? "px-0" : "container mx-auto px-4" // Remove container/px-4 on mobile when program is selected
+      )}>
+        <Card className={cn(
+          "w-full shadow-lg",
+          isMobile && selectedUserProgram ? "max-w-full rounded-none" : "max-w-3xl" // Full width and no rounded corners on mobile when program is selected
+        )}>
           <CardHeader className="text-center">
              {selectedUserProgram ? (
                 <>
@@ -493,7 +499,7 @@ const MonEspace: React.FC = () => {
                 </>
              )}
           </CardHeader>
-          <CardContent className={cn("py-4", isMobile ? "px-0" : "px-4")}> {/* Conditional horizontal padding */}
+          <CardContent className={cn("py-4", isMobile && selectedUserProgram ? "px-0" : "px-4")}> {/* Conditional horizontal padding */}
             {selectedUserProgram ? (
               // Display selected program details
               <Accordion type="single" collapsible className="w-full">
