@@ -19,7 +19,7 @@ export type ProgramFormData = z.infer<typeof programFormSchemaForGenerator>;
 
 // Define types for exercise categories and muscle groups
 type ExerciseCategory = "Exercice de powerlifting" | "Compound secondaire" | "Isolation lourde" | "Isolation légère";
-type MuscleGroup = "Jambes" | "Pectoraux" | "Dos" | "Épaules" | "Biceps" | "Triceps" | "Abdos" | "Mollets" | "Avant-bras" | "Lombaires"; // Added Mollets, Avant-bras, Lombaires
+type MuscleGroup = "Jambes" | "Pectoraux" | "Dos" | "Épaules" | "Biceps" | "Triceps" | "Abdos" | "Mollets" | "Avant-bras" | "Lombaires";
 
 // Define a type for an exercise with new fields
 interface Exercise {
@@ -64,12 +64,12 @@ const roundToNearest2_5 = (weight: number): number => {
     return Math.round(weight / 2.5) * 2.5;
 };
 
-// --- Updated Exercise List ---
+// --- Updated Exercise List with corrected capitalization, categories, and muscles ---
 const allExercises: Exercise[] = [
   // Exercice de powerlifting
-  { name: "Squat barre", category: "Exercice de powerlifting", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] },
-  { name: "Développé couché", category: "Exercice de powerlifting", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "épaules antérieures"], equipment: ["barre-halteres"] },
-  { name: "Soulevé de terre roumain", category: "Exercice de powerlifting", muscleGroup: "Dos", muscles: ["ischios", "fessiers", "lombaires"], equipment: ["barre-halteres"] }, // Changed muscleGroup to Dos as it's a back exercise primarily
+  { name: "Squat barre", category: "Exercice de powerlifting", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers"], equipment: ["barre-halteres"] },
+  { name: "Développé couché", category: "Exercice de powerlifting", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "deltoïdes antérieurs"], equipment: ["barre-halteres"] },
+  { name: "Soulevé de terre roumain", category: "Exercice de powerlifting", muscleGroup: "Dos", muscles: ["ischios", "fessiers", "lombaires"], equipment: ["barre-halteres"] },
   { name: "Développé militaire barre", category: "Exercice de powerlifting", muscleGroup: "Épaules", muscles: ["épaules", "triceps"], equipment: ["barre-halteres"] },
 
   // Compound secondaire
@@ -82,26 +82,26 @@ const allExercises: Exercise[] = [
   { name: "Tirage vertical machine", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "biceps"], equipment: ["machines-guidees"] },
   { name: "Pompes", category: "Compound secondaire", muscleGroup: "Pectoraux", muscles: ["pectoraux", "triceps", "épaules"], equipment: [] },
   { name: "Tractions australiennes", category: "Compound secondaire", muscleGroup: "Dos", muscles: ["dorsaux", "biceps", "trapèzes"], equipment: ["poids-corps"] },
-  { name: "Split squat bulgare", category: "Compound secondaire", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] }, // Added
+  { name: "Split squat bulgare", category: "Compound secondaire", muscleGroup: "Jambes", muscles: ["quadriceps", "fessiers", "ischios"], equipment: ["barre-halteres"] },
 
   // Isolation lourde
-  { name: "Leg extension", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["quadriceps"], equipment: ["machines-guidees"] }, // Added
-  { name: "Leg curl", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["ischios"], equipment: ["machines-guidees"] }, // Added
-  { name: "Écartés poulie", category: "Isolation lourde", muscleGroup: "Pectoraux", muscles: ["pectoraux"], equipment: ["machines-guidees"] }, // Added
-  { name: "Curl biceps barre", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps"], equipment: ["barre-halteres"] }, // Added
-  { name: "Extension triceps poulie haute", category: "Isolation lourde", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] }, // Added
-  { name: "Curl incliné haltères", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (longue portion)"], equipment: ["barre-halteres"] }, // Added
-  { name: "Preacher curl", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (courte portion)"], equipment: ["barre-halteres", "machines-guidees"] }, // Added - assuming preacher bench/machine
-  { name: "Reverse curls", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["brachial", "avant-bras"], equipment: ["barre-halteres"] }, // Added
+  { name: "Leg extension", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["quadriceps"], equipment: ["machines-guidees"] },
+  { name: "Leg curl", category: "Isolation lourde", muscleGroup: "Jambes", muscles: ["ischios"], equipment: ["machines-guidees"] },
+  { name: "Écartés poulie", category: "Isolation lourde", muscleGroup: "Pectoraux", muscles: ["pectoraux"], equipment: ["machines-guidees"] },
+  { name: "Curl biceps barre", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps"], equipment: ["barre-halteres"] },
+  { name: "Extension triceps poulie haute", category: "Isolation lourde", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] },
+  { name: "Curl incliné haltères", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (longue portion)"], equipment: ["barre-halteres"] },
+  { name: "Preacher curl", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["biceps (courte portion)"], equipment: ["barre-halteres", "machines-guidees"] },
+  { name: "Reverse curls", category: "Isolation lourde", muscleGroup: "Biceps", muscles: ["brachial", "avant-bras"], equipment: ["barre-halteres"] },
 
   // Isolation légère
-  { name: "Élévations latérales haltères", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["barre-halteres"] }, // Added
-  { name: "Crunchs", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux (grand droit)"], equipment: [] }, // Added
-  { name: "Leg raises", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux inférieurs", "fléchisseurs de hanches"], equipment: [] }, // Added
-  { name: "Calf raises", category: "Isolation légère", muscleGroup: "Jambes", muscles: ["mollets"], equipment: [] }, // Added
-  { name: "Face pulls", category: "Isolation légère", muscleGroup: "Dos", muscles: ["deltoïdes postérieurs", "trapèzes", "rotateurs externes"], equipment: ["machines-guidees"] }, // Added - assuming cable machine
-  { name: "Pushdowns à la corde", category: "Isolation légère", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] }, // Added - assuming cable machine
-  { name: "Élévations latérales à la poulie basse", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["machines-guidees"] }, // Added
+  { name: "Élévations latérales haltères", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["barre-halteres"] },
+  { name: "Crunchs", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux"], equipment: [] },
+  { name: "Leg raises", category: "Isolation légère", muscleGroup: "Abdos", muscles: ["abdominaux inférieurs", "fléchisseurs de hanches"], equipment: [] },
+  { name: "Calf raises", category: "Isolation légère", muscleGroup: "Jambes", muscles: ["mollets"], equipment: [] },
+  { name: "Face pulls", category: "Isolation légère", muscleGroup: "Dos", muscles: ["deltoïdes postérieurs", "trapèzes", "rotateurs externes"], equipment: ["machines-guidees"] },
+  { name: "Pushdowns à la corde", category: "Isolation légère", muscleGroup: "Triceps", muscles: ["triceps"], equipment: ["machines-guidees"] },
+  { name: "Élévations latérales à la poulie basse", category: "Isolation légère", muscleGroup: "Épaules", muscles: ["deltoïdes moyens"], equipment: ["machines-guidees"] },
 ];
 
 
@@ -137,6 +137,7 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
       // Ensure 1RMs are available (should be handled by Zod validation in component, but defensive check)
       if (squat1RM === null || bench1RM === null || deadlift1RM === null || ohp1RM === null ||
           squat1RM <= 0 || bench1RM <= 0 || deadlift1RM <= 0 || ohp1RM <= 0) {
+          // This case should ideally not happen if form validation works, but return a minimal program or throw error
           console.error("Missing 1RM values for 5/3/1 program generation.");
            return {
                title: "Erreur de Génération",
@@ -253,7 +254,8 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
               // Add accessory work for days with main lifts (days 1 to min(joursEntrainement, 4))
               if (dayIndex < Math.min(joursEntrainement, 4)) {
                   const addedAccessoryNames = new Set<string>();
-                  const currentDayMuscles = day.exercises.flatMap(ex => ex.muscles || []); // Get muscles already hit by main lifts
+                  // Get muscles already hit by main lifts for today
+                  const musclesHitToday = day.exercises.flatMap(ex => ex.muscles || []);
 
                   // Simple accessory logic: add a few accessories from different categories
                   // Prioritize compounds, then heavy isolation, then light isolation
@@ -326,7 +328,14 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
 
   // Define large muscle groups for volume tracking (using general MuscleGroup type)
   const largeMuscleGroups: MuscleGroup[] = ["Jambes", "Pectoraux", "Dos", "Épaules"];
-  const weeklyVolumeCap = 15; // Max sets per week for large muscle groups
+  // Note: The 8-15 sets per muscle per week logic is complex and not fully implemented here.
+  // The current logic uses fixed sets per exercise (baseSets = 3).
+  // Achieving precise volume targets dynamically would require a more sophisticated algorithm
+  // that selects exercises and assigns sets (between 2-4) based on remaining weekly volume needs,
+  // while also respecting daily exercise limits and session duration.
+  // This is a potential future enhancement.
+  const weeklyVolumeCap = 15; // Max sets per week for large muscle groups (used as a soft cap in current logic)
+
 
   // Generate 4 weeks
   for (let weekNum = 1; weekNum <= 4; weekNum++) {
@@ -361,7 +370,6 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
           }
 
           // Check if exercise is available with current equipment (already filtered availableExercises)
-          // This check is redundant if we only pick from availableExercises, but harmless.
           const isAvailable = exercise.equipment.length === 0 || (materiel && materiel.some(eq => exercise.equipment.includes(eq)));
           if (!isAvailable) {
               return false;
