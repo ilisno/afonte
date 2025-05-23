@@ -51,6 +51,44 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Veuillez entrer une adresse email valide.",
   }).or(z.literal("")), // Allow empty string or a valid email
+
+  // New fields for 1RM (optional by default)
+  squat1RM: z.coerce.number().optional().nullable(),
+  bench1RM: z.coerce.number().optional().nullable(),
+  deadlift1RM: z.coerce.number().optional().nullable(),
+  ohp1RM: z.coerce.number().optional().nullable(),
+}).superRefine((data, ctx) => {
+    // Custom validation: If objective is Powerlifting or Powerbuilding, 1RM fields are required
+    if (data.objectif === "Powerlifting" || data.objectif === "Powerbuilding") {
+        if (!data.squat1RM || data.squat1RM <= 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Veuillez entrer votre 1RM au Squat.",
+                path: ['squat1RM'],
+            });
+        }
+        if (!data.bench1RM || data.bench1RM <= 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Veuillez entrer votre 1RM au Développé Couché.",
+                path: ['bench1RM'],
+            });
+        }
+        if (!data.deadlift1RM || data.deadlift1RM <= 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Veuillez entrer votre 1RM au Soulevé de Terre.",
+                path: ['deadlift1RM'],
+            });
+        }
+        if (!data.ohp1RM || data.ohp1RM <= 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Veuillez entrer votre 1RM à l'Overhead Press.",
+                path: ['ohp1RM'],
+            });
+        }
+    }
 });
 
 
@@ -74,8 +112,17 @@ const ProgrammeGenerator: React.FC = () => {
       dureeMax: 60,
       materiel: [],
       email: session?.user?.email || "", // Pre-fill email if logged in
+      squat1RM: null, // Initialize new fields
+      bench1RM: null,
+      deadlift1RM: null,
+      ohp1RM: null,
     },
   });
+
+  // Watch the 'objectif' field to conditionally show 1RM inputs
+  const selectedObjectif = form.watch("objectif");
+  const show1RMInputs = selectedObjectif === "Powerlifting" || selectedObjectif === "Powerbuilding";
+
 
   // Update default email value if session changes after initial render
   React.useEffect(() => {
@@ -217,17 +264,45 @@ const ProgrammeGenerator: React.FC = () => {
                                   <TableHead>Exercice</TableHead>
                                   <TableHead>Séries</TableHead>
                                   <TableHead>Répétitions</TableHead>
+                                  {/* Conditionally show Weight header for 5/3/1 */}
+                                  {generatedProgram.is531 && <TableHead>Poids (kg)</TableHead>}
                                   <TableHead>Notes</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {day.exercises.map((exercise, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell className="font-medium">{exercise.name}</TableCell>
-                                    <TableCell>{exercise.sets}</TableCell>
-                                    <TableCell>{exercise.reps}</TableCell>
-                                    <TableCell>{exercise.notes}</TableCell>
-                                  </TableRow>
+                                  <React.Fragment key={index}>
+                                    {/* Render sets based on is531 flag */}
+                                    {generatedProgram.is531 && exercise.setsDetails ? (
+                                      exercise.setsDetails.map((set, setIndex) => (
+                                        <TableRow key={`${index}-${setIndex}`}>
+                                          {setIndex === 0 && (
+                                            <TableCell rowSpan={exercise.setsDetails?.length} className="font-medium align-top">
+                                              {exercise.name}
+                                            </TableCell>
+                                          )}
+                                          <TableCell>{set.setNumber}</TableCell>
+                                          <TableCell className={set.isAmrap ? 'font-bold text-sbf-red' : ''}>
+                                            {set.reps} {set.isAmrap && '(AMRAP)'}
+                                          </TableCell>
+                                          <TableCell>{set.calculatedWeight} kg</TableCell> {/* Display calculated weight */}
+                                          {setIndex === 0 && (
+                                            <TableCell rowSpan={exercise.setsDetails?.length} className="align-top">
+                                              {exercise.notes}
+                                            </TableCell>
+                                          )}
+                                        </TableRow>
+                                      ))
+                                    ) : (
+                                      // Existing rendering for non-5/3/1 programs
+                                      <TableRow key={index}>
+                                        <TableCell className="font-medium">{exercise.name}</TableCell>
+                                        <TableCell>{exercise.sets}</TableCell>
+                                        <TableCell>{exercise.reps}</TableCell>
+                                        <TableCell>{exercise.notes}</TableCell>
+                                      </TableRow>
+                                    )}
+                                  </React.Fragment>
                                 ))}
                               </TableBody>
                             </Table>
@@ -310,6 +385,67 @@ const ProgrammeGenerator: React.FC = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* 1RM Inputs (Conditionally rendered) */}
+                {show1RMInputs && (
+                    <div className="space-y-4 border-t pt-6 mt-6"> {/* Added border and padding */}
+                        <h3 className="text-xl font-bold text-gray-800">Vos 1RM (Max sur 1 répétition)</h3>
+                        <p className="text-gray-600 text-sm">Entrez vos meilleures performances récentes pour les 4 mouvements principaux.</p>
+                        <FormField
+                            control={form.control}
+                            name="squat1RM"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Squat (kg)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Ex: 100" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="bench1RM"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Développé Couché (kg)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Ex: 80" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="deadlift1RM"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Soulevé de Terre (kg)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Ex: 150" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="ohp1RM"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Overhead Press (kg)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.target.value === '' ? field.onChange(null) : field.onChange(parseFloat(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+
 
                 {/* Niveau d'expérience */}
                 <FormField

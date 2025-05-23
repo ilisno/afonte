@@ -14,6 +14,12 @@ const programFormSchemaForGenerator = z.object({
   materiel: z.array(z.string()).optional(),
   // Email is not needed for generation itself, but is part of the original schema
   // email: z.string().email().or(z.literal("b")),
+
+  // New fields for 1RM (optional by default, but validated in component)
+  squat1RM: z.coerce.number().optional().nullable(),
+  bench1RM: z.coerce.number().optional().nullable(),
+  deadlift1RM: z.coerce.number().optional().nullable(),
+  ohp1RM: z.coerce.number().optional().nullable(),
 });
 
 // Define a type for the form data used by the generator
@@ -24,21 +30,207 @@ export type ProgramFormData = z.infer<typeof programFormSchemaForGenerator>;
 export type Program = {
   title: string;
   description: string;
+  is531?: boolean; // Flag to indicate 5/3/1 program
   weeks: {
     weekNumber: number;
     days: {
       dayNumber: number;
-      exercises: { name: string; sets: string; reps: string; notes?: string }[];
+      exercises: {
+        name: string;
+        sets: string; // Still string for display like "3" or "5/3/1"
+        reps: string; // Still string for display like "5+" or "3-5"
+        notes?: string; // RPE or other notes
+        // New fields for 5/3/1 sets
+        setsDetails?: { // Array of details for each set
+            setNumber: number;
+            percentage: number; // e.g., 0.65
+            calculatedWeight: number; // Weight rounded to 2.5kg
+            reps: string; // Specific reps for this set (e.g., "5", "3", "1+")
+            isAmrap?: boolean; // Flag for AMRAP set
+        }[];
+      }[];
     }[];
   }[];
+};
+
+// Helper function to round weight to the nearest 2.5 kg
+const roundToNearest2_5 = (weight: number): number => {
+    return Math.round(weight / 2.5) * 2.5;
 };
 
 // --- Simplified Client-Side Program Generation Logic ---
 // NOTE: This is a basic placeholder. A real generator would be much more complex.
 export const generateProgramClientSide = (values: ProgramFormData): Program => {
-  const { objectif, experience, split, joursEntrainement, materiel, dureeMax } = values;
+  const { objectif, experience, split, joursEntrainement, materiel, dureeMax, squat1RM, bench1RM, deadlift1RM, ohp1RM } = values;
 
-  const baseReps = objectif === "Powerlifting" ? "3-5" : (objectif === "Sèche / Perte de Gras" ? "12-15" : "8-12");
+  // --- 5/3/1 Logic ---
+  if (objectif === "Powerlifting" || objectif === "Powerbuilding") {
+      // Ensure 1RMs are available (should be handled by Zod validation in component, but defensive check)
+      if (squat1RM === null || bench1RM === null || deadlift1RM === null || ohp1RM === null ||
+          squat1RM <= 0 || bench1RM <= 0 || deadlift1RM <= 0 || ohp1RM <= 0) {
+          // This case should ideally not happen if form validation works, but return a minimal program or throw error
+          console.error("Missing 1RM values for 5/3/1 program generation.");
+           return {
+               title: "Erreur de Génération",
+               description: "Impossible de générer le programme 5/3/1. Veuillez vérifier vos valeurs de 1RM.",
+               is531: true,
+               weeks: []
+           };
+      }
+
+      // Calculate Training Max (TM) for each lift
+      const tmSquat = roundToNearest2_5(squat1RM * 0.9);
+      const tmBench = roundToNearest2_5(bench1RM * 0.9);
+      const tmDeadlift = roundToNearest2_5(deadlift1RM * 0.9);
+      const tmOhp = roundToNearest2_5(ohp1RM * 0.9);
+
+      const trainingMaxes = {
+          "Squat": tmSquat,
+          "Développé Couché": tmBench,
+          "Soulevé de Terre": tmDeadlift,
+          "Overhead Press": tmOhp,
+      };
+
+      // 5/3/1 percentages and reps per week
+      const cycleWeeks = [
+          { week: 1, reps: "5", percentages: [0.65, 0.75, 0.85], amrapSet: 3 }, // 5+
+          { week: 2, reps: "3", percentages: [0.70, 0.80, 0.90], amrapSet: 3 }, // 3+
+          { week: 3, reps: "5/3/1", percentages: [0.75, 0.85, 0.95], amrapSet: 3 }, // 1+
+          { week: 4, reps: "5", percentages: [0.40, 0.50, 0.60], amrapSet: null }, // Deload
+      ];
+
+      const program531: Program = {
+          title: `Programme 5/3/1 - ${objectif}`,
+          description: `Programme basé sur la méthode 5/3/1 de Jim Wendler pour ${joursEntrainement} jours/semaine.`,
+          is531: true,
+          weeks: [],
+      };
+
+      // Define main lifts order for splitting
+      const mainLifts = ["Squat", "Développé Couché", "Soulevé de Terre", "Overhead Press"];
+
+      // Define accessory exercises (simple list, could be more complex based on split/day)
+      const accessoryExercises = [
+          { name: "Fentes Haltères", muscleGroup: "Jambes", type: "compound", equipment: ["barre-halteres"] },
+          { name: "Leg Extension", muscleGroup: "Jambes", type: "isolation", equipment: ["machines-guidees"] },
+          { name: "Leg Curl", muscleGroup: "Jambes", type: "isolation", equipment: ["machines-guidees"] },
+          { name: "Écartés Poulie", muscleGroup: "Pectoraux", type: "isolation", equipment: ["machines-guidees"] },
+          { name: "Dips", muscleGroup: "Triceps", type: "compound", equipment: ["poids-corps"] },
+          { name: "Tirage Vertical Machine", muscleGroup: "Dos", type: "compound", equipment: ["machines-guidees"] },
+          { name: "Rowing Barre", muscleGroup: "Dos", type: "compound", equipment: ["barre-halteres"] },
+          { name: "Élévations Latérales Haltères", muscleGroup: "Épaules", type: "isolation", equipment: ["barre-halteres"] },
+          { name: "Curl Biceps Barre", muscleGroup: "Biceps", type: "isolation", equipment: ["barre-halteres"] },
+          { name: "Extension Triceps Poulie Haute", muscleGroup: "Triceps", type: "isolation", equipment: ["machines-guidees"] },
+          { name: "Crunchs", muscleGroup: "Abdos", type: "isolation", equipment: [] },
+          { name: "Leg Raises", muscleGroup: "Abdos", type: "isolation", equipment: [] },
+      ];
+
+      // Filter accessories by available equipment
+      const availableAccessories = accessoryExercises.filter(ex =>
+          ex.equipment.length === 0 || (materiel && materiel.some(eq => ex.equipment.includes(eq)))
+      );
+
+      // Generate 4 weeks of 5/3/1
+      for (const cycleWeek of cycleWeeks) {
+          const week: Program['weeks'][number] = {
+              weekNumber: cycleWeek.week,
+              days: [],
+          };
+
+          // Determine main lifts for each day based on joursEntrainement
+          const dailyLifts: string[][] = [];
+          if (joursEntrainement === 1) {
+              dailyLifts.push(mainLifts); // All 4 lifts on day 1
+          } else if (joursEntrainement === 2) {
+              dailyLifts.push(["Squat", "Overhead Press"]); // Day 1: Squat, OHP
+              dailyLifts.push(["Développé Couché", "Soulevé de Terre"]); // Day 2: Bench, Deadlift
+          } else if (joursEntrainement === 3) {
+              dailyLifts.push(["Squat"]); // Day 1: Squat
+              dailyLifts.push(["Développé Couché"]); // Day 2: Bench
+              dailyLifts.push(["Soulevé de Terre", "Overhead Press"]); // Day 3: Deadlift, OHP
+          } else { // joursEntrainement >= 4
+              dailyLifts.push(["Squat"]); // Day 1: Squat
+              dailyLifts.push(["Développé Couché"]); // Day 2: Bench
+              dailyLifts.push(["Soulevé de Terre"]); // Day 3: Deadlift
+              dailyLifts.push(["Overhead Press"]); // Day 4: OHP
+              // Days 5, 6, 7 will be rest or additional accessory/cardio days (handled below)
+          }
+
+          // Generate days
+          for (let dayIndex = 0; dayIndex < joursEntrainement; dayIndex++) {
+              const day: Program['weeks'][number]['days'][number] = {
+                  dayNumber: dayIndex + 1,
+                  exercises: [],
+              };
+
+              const liftsForToday = dailyLifts[dayIndex] || []; // Get main lifts for this day
+
+              // Add main lifts for the day
+              liftsForToday.forEach(liftName => {
+                  const tm = trainingMaxes[liftName as keyof typeof trainingMaxes];
+                  if (tm !== undefined) {
+                      const setsDetails = cycleWeek.percentages.map((percent, setIdx) => {
+                          const calculatedWeight = roundToNearest2_5(tm * percent);
+                          const reps = cycleWeek.reps === "5/3/1" ? (setIdx === 0 ? "5" : (setIdx === 1 ? "3" : "1+")) : cycleWeek.reps;
+                          const isAmrap = cycleWeek.amrapSet === setIdx + 1;
+
+                          return {
+                              setNumber: setIdx + 1,
+                              percentage: percent,
+                              calculatedWeight: calculatedWeight,
+                              reps: reps,
+                              isAmrap: isAmrap,
+                          };
+                      });
+
+                      day.exercises.push({
+                          name: liftName,
+                          sets: cycleWeek.percentages.length.toString(), // Total number of sets
+                          reps: cycleWeek.reps, // General rep scheme for the week
+                          notes: `TM: ${tm} kg`, // Display TM in notes
+                          setsDetails: setsDetails,
+                      });
+                  }
+              });
+
+              // Add accessory work for days with main lifts (days 1 to min(joursEntrainement, 4))
+              if (dayIndex < Math.min(joursEntrainement, 4)) {
+                  let accessoryCount = 0;
+                  const addedAccessoryNames = new Set<string>();
+
+                  // Simple accessory logic: add 2-3 random available accessories
+                  // Could be improved to target specific muscle groups based on the main lift
+                  const potentialAccessoriesForDay = availableAccessories.filter(acc => {
+                      // Basic filtering: avoid adding accessories that are the main lifts
+                      return !mainLifts.includes(acc.name);
+                  });
+
+                  // Shuffle and pick a few accessories
+                  const shuffledAccessories = potentialAccessoriesForDay.sort(() => 0.5 - Math.random());
+                  shuffledAccessories.slice(0, 3).forEach(acc => { // Add up to 3 accessories
+                      if (!addedAccessoryNames.has(acc.name)) {
+                           day.exercises.push({
+                               name: acc.name,
+                               sets: "3", // Default accessory sets
+                               reps: "8-12", // Default accessory reps
+                               notes: "Accessoire",
+                           });
+                           addedAccessoryNames.add(acc.name);
+                           accessoryCount++;
+                      }
+                  });
+              }
+
+              week.days.push(day);
+          }
+          program531.weeks.push(week);
+      }
+
+      return program531;
+  }
+
+  // --- Existing Generation Logic (for other objectives) ---
+  const baseReps = objectif === "Sèche / Perte de Gras" ? "12-15" : "8-12"; // Simplified reps
   const baseSets = 3; // Use number for calculations
 
   // Exercise list with type, muscle group (general), and specific muscle group (for legs)
@@ -67,7 +259,7 @@ export const generateProgramClientSide = (values: ProgramFormData): Program => {
     { name: "Calf Raises", muscleGroup: "Jambes", specificMuscleGroup: "Mollets", type: "isolation", equipment: [] }, // New
   ];
 
-  // Define "big strength" exercises for RPE calculation
+  // Define "big strength" exercises for RPE calculation (used in old logic)
   const bigStrengthExercises = ["Squat Barre", "Soulevé de Terre Roumain", "Développé Couché", "Développé Militaire Barre"];
 
   // Filter exercises based on available equipment
