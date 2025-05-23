@@ -7,13 +7,13 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
+  Form, // Keep Form for the email input section
+  FormControl, // Keep FormControl for the email input section
+  FormField, // Keep FormField for the email input section
+  FormItem, // Keep FormItem for the email input section
+  FormLabel, // Keep FormLabel for the email input section
+  FormMessage, // Keep FormMessage for the email input section
+  FormDescription, // Keep FormDescription for the email input section
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDescriptionShadcn } from "@/components/ui/card";
@@ -50,6 +50,15 @@ interface DayWorkoutData {
   [exerciseName: string]: ExerciseWorkoutData;
 }
 
+// Define schema for email validation (used only for the login prompt)
+const emailSchema = z.object({
+  email: z.string().email({
+    message: "Veuillez entrer une adresse email valide.",
+  }),
+});
+
+type EmailFormValues = z.infer<typeof emailSchema>;
+
 
 const MonEspace: React.FC = () => {
   const session = useSession();
@@ -69,6 +78,25 @@ const MonEspace: React.FC = () => {
   // State for workout tracking inputs for the currently viewed day
   const [currentWorkoutData, setCurrentWorkoutData] = useState<DayWorkoutData>({});
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
+
+  // Initialize the email form (only used when not logged in)
+  const emailForm = useForm<EmailFormValues>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  // Handle email form submission (only used when not logged in)
+  const onEmailSubmit = async (values: EmailFormValues) => {
+    // This function is not actually used to log the user in,
+    // it's just part of the placeholder login prompt.
+    // The actual login is handled by the /login page.
+    console.log("Email submitted in placeholder form:", values.email);
+    // In a real scenario, you might trigger a login flow here.
+    // For now, we'll just log it and maybe show a message.
+    showSuccess("Merci ! Veuillez vous connecter via la page dédiée.");
+  };
 
 
   // Fetch programs when session changes or component mounts
@@ -367,11 +395,37 @@ const MonEspace: React.FC = () => {
               </CardDescriptionShadcn>
             </CardHeader>
             <CardContent>
-               <Button asChild className="w-full bg-sbf-red text-white hover:bg-red-700">
-                  <div> {/* Wrap multiple children in a div */}
-                    <a href="/login">Se connecter</a> {/* Use a standard anchor for full page reload on login page */}
-                  </div>
-               </Button>
+               {/* Use the email form here */}
+               <Form {...emailForm}>
+                 <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+                   <FormField
+                     control={emailForm.control}
+                     name="email"
+                     render={({ field }) => (
+                       <FormItem>
+                         <FormLabel>Email</FormLabel>
+                         <FormControl>
+                           <Input type="email" placeholder="vous@email.com" {...field} />
+                         </FormControl>
+                         <FormDescription className="text-gray-600">
+                            Entrez votre email pour vous connecter ou créer un compte.
+                         </FormDescription>
+                         <FormMessage />
+                       </FormItem>
+                     )}
+                   />
+                   {/* This button doesn't actually log in, it's just part of the prompt */}
+                   {/* The actual login link is below */}
+                   <Button type="submit" className="w-full bg-sbf-red text-white hover:bg-red-700">
+                     Continuer
+                   </Button>
+                 </form>
+               </Form>
+               <div className="mt-4 text-center">
+                  <Link to="/login" className="text-sbf-red hover:underline">
+                     Aller à la page de connexion complète
+                  </Link>
+               </div>
             </CardContent>
           </Card>
         </main>
@@ -498,8 +552,9 @@ const MonEspace: React.FC = () => {
                                                     </div>
                                                  ))}
                                                  <div className="mt-3">
-                                                    <FormLabel className="font-semibold text-gray-800">Notes pour l'exercice:</FormLabel>
+                                                    <label htmlFor={`notes-${exercise.name}`} className="font-semibold text-gray-800 block mb-1">Notes pour l'exercice:</label> {/* Use standard label */}
                                                     <Input
+                                                       id={`notes-${exercise.name}`} // Add id for label
                                                        type="text"
                                                        placeholder="Notes spécifiques..."
                                                        value={exerciseData.notes || ''}
