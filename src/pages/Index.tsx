@@ -40,8 +40,9 @@ const Index: React.FC = () => {
 
         {/* Mon Espace Static Preview Section (using the new component) */}
         <section className="mt-16 w-full max-w-4xl text-center">
+            {/* Updated Section Title */}
             <h2 className="text-3xl font-bold text-gray-800 mb-8">
-                Suivez vos progrès dans votre espace personnel
+                Tes performances après nous avoir rejoint
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                 Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.

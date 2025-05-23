@@ -86,7 +86,7 @@ const StrengthProgressChart: React.FC = () => {
             <YAxis
                dataKey="perfs" // Use the new data key
                stroke="#555"
-               label={{ value: 'Tes perfs', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#555' } }} // Changed Y axis label
+               // Removed: label={{ value: 'Tes perfs', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#555' } }} // Changed Y axis label
                tickLine={false} // Hide Y axis tick lines
                axisLine={false} // Hide Y axis line
             />
