@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { sanityClient } from '@/integrations/sanity/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { PortableText } from '@portabletext/react'; // Re-import PortableText
+import { PortableText } from '@portabletext/react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDescriptionShadcn } from "@/components/ui/card";
 import { usePopup } from '@/contexts/PopupContext';
@@ -11,39 +11,37 @@ import { useNavigate } from 'react-router-dom';
 
 const BlogPostDetail: React.FC = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>();
-  // Expect post.body to be Portable Text (array of blocks)
-  const [post, setPost] = useState<any>(null); // Keep 'any' as Portable Text structure can vary
+  const [post, setPost] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showRandomPopup } = usePopup();
   const navigate = useNavigate();
 
-  console.log("[BlogPostDetail] Component mounted for slug:", postSlug); // Log the slug
+  console.log("[BlogPostDetail] Component mounted for slug:", postSlug);
 
   useEffect(() => {
     const fetchPost = async () => {
       setIsLoading(true);
       setError(null);
-      setPost(null); // Clear previous post data
+      setPost(null);
 
       try {
-        // Ensure the query fetches 'body' and 'mainImage' fields
         const query = `*[_type == "post" && slug.current == $slug]{
           _id,
           title,
           slug,
-          body, // Fetch the content from the 'body' field (Portable Text)
-          mainImage{ // Fetch main image details
-            asset->{url}, // Get the image URL
-            alt // Get the alt text
+          body,
+          mainImage{
+            asset->{url},
+            alt
           },
           "categories": categories[]->title,
           "author": author->{name, image}
         }`;
         const params = { slug: postSlug };
-        console.log("[BlogPostDetail] Fetching post with query:", query, "and params:", params); // Log query and params
+        console.log("[BlogPostDetail] Fetching post with query:", query, "and params:", params);
         const result = await sanityClient.fetch(query, params);
-        console.log("[BlogPostDetail] Sanity fetch result:", result); // Log the raw result
+        console.log("[BlogPostDetail] Sanity fetch result:", result);
 
         if (result.length === 0) {
           setPost(null);
@@ -55,7 +53,7 @@ const BlogPostDetail: React.FC = () => {
         }
       } catch (err) {
         setError("Une erreur est survenue lors de la récupération de l'article.");
-        console.error("[BlogPostDetail] Error fetching post:", err); // Log the error
+        console.error("[BlogPostDetail] Error fetching post:", err);
         setPost(null);
       } finally {
         setIsLoading(false);
@@ -63,7 +61,7 @@ const BlogPostDetail: React.FC = () => {
       }
     };
 
-    if (postSlug) { // Only fetch if postSlug is available
+    if (postSlug) {
         fetchPost();
     } else {
         setIsLoading(false);
@@ -71,9 +69,8 @@ const BlogPostDetail: React.FC = () => {
         console.log("[BlogPostDetail] No post slug provided.");
     }
 
-  }, [postSlug]); // Re-run effect if postSlug changes
+  }, [postSlug]);
 
-  // Function to handle the click on the "Générer mon programme" button
   const handleGenerateProgramClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     console.log("[BlogPostDetail] 'Générer mon programme' button clicked.");
@@ -86,10 +83,9 @@ const BlogPostDetail: React.FC = () => {
     showRandomPopup({ onCloseCallback: handlePopupCloseAndNavigate });
   };
 
-  // Function to render the call-to-action banner
   const renderCallToActionBanner = () => {
     return (
-      <Card className="bg-sbf-red text-white p-6 my-8"> {/* Added margin-top and margin-bottom */}
+      <Card className="bg-sbf-red text-white p-6 my-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Générez votre programme personnalisé gratuitement !</CardTitle>
           <CardDescriptionShadcn className="text-lg">
@@ -108,7 +104,6 @@ const BlogPostDetail: React.FC = () => {
     );
   };
 
-  // --- Conditional Rendering based on state ---
   if (isLoading) {
     console.log("[BlogPostDetail] Rendering: Loading state.");
     return (
@@ -148,37 +143,41 @@ const BlogPostDetail: React.FC = () => {
      );
   }
 
-  // If post is loaded and available, render the post details
   console.log("[BlogPostDetail] Rendering: Post available.", post);
   return (
     <div className="flex flex-col min-h-screen bg-gray-100"> {/* This div provides the grey background */}
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-12"> {/* This centers the content and adds padding */}
-        <h1 className="text-4xl font-bold mb-8 text-gray-800 text-center">{post.title}</h1> {/* Increased bottom margin, centered title */}
+      {/* Main content area, centered */}
+      <main className="flex-grow container mx-auto px-4 py-12 flex justify-center">
+        {/* Card wrapping the main article content */}
+        <Card className="w-full max-w-3xl shadow-lg"> {/* Added max-w-3xl and shadow */}
+          <CardContent className="p-6"> {/* Added padding inside the card */}
+            <h1 className="text-4xl font-bold mb-8 text-gray-800 text-center">{post.title}</h1>
 
-        {/* Display Main Image */}
-        {post.mainImage?.asset?.url && (
-            <img
-              src={post.mainImage.asset.url}
-              alt={post.mainImage.alt || post.title}
-              className="w-full h-auto object-cover rounded-md mb-8" // Added styling: full width, auto height, cover, rounded corners, bottom margin
-            />
-          )}
+            {/* Display Main Image - Centered and smaller */}
+            {post.mainImage?.asset?.url && (
+                <img
+                  src={post.mainImage.asset.url}
+                  alt={post.mainImage.alt || post.title}
+                  className="mx-auto max-w-xl h-auto object-cover rounded-md mb-8" // Added mx-auto, max-w-xl
+                />
+              )}
 
-        {/* Render the Portable Text content from 'body' */}
-        {/* Apply prose classes and max-w-prose to style and narrow the content */}
-        <div className="prose prose-lg max-w-prose mx-auto"> {/* Changed max-w-none to max-w-prose, kept mx-auto */}
-           {/* Check if post.body exists before rendering PortableText */}
-           {post.body ? (
-               <PortableText value={post.body} />
-           ) : (
-               <p>Contenu de l'article non disponible.</p> // Fallback message
-           )}
-        </div>
+            {/* Render the Portable Text content from 'body' */}
+            {/* Apply prose classes and max-w-prose to style and narrow the text block */}
+            <div className="prose prose-lg max-w-prose mx-auto"> {/* Kept max-w-prose and mx-auto */}
+               {post.body ? (
+                   <PortableText value={post.body} />
+               ) : (
+                   <p>Contenu de l'article non disponible.</p>
+               )}
+            </div>
 
-        {/* Render the Call-to-Action Banner after the content */}
-        {renderCallToActionBanner()}
+            {/* Render the Call-to-Action Banner after the content */}
+            {renderCallToActionBanner()}
 
+          </CardContent>
+        </Card>
       </main>
       <Footer />
     </div>
