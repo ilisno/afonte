@@ -31,12 +31,16 @@ const BlogPostDetail: React.FC = () => {
         const params = { slug: postSlug };
         const result = await sanityClient.fetch(query, params);
         if (result.length === 0) {
-          throw new Error("Post not found");
+          // If no post is found, set post to null explicitly and stop loading
+          setPost(null);
+          setError("Article non trouvé."); // Set a specific error message
+        } else {
+          setPost(result[0]);
         }
-        setPost(result[0]);
       } catch (err) {
         setError("Une erreur est survenue lors de la récupération de l'article.");
         console.error("Error fetching post:", err);
+        setPost(null); // Ensure post is null on error
       } finally {
         setIsLoading(false);
       }
@@ -59,42 +63,6 @@ const BlogPostDetail: React.FC = () => {
     // Show a random popup. When it's closed, the callback will run.
     showRandomPopup({ onCloseCallback: handlePopupCloseAndNavigate });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gray-100">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12 text-center">
-          <p>Chargement de l'article...</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gray-100">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12 text-center">
-          <p className="text-red-500">{error}</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gray-100">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12 text-center">
-          <p>Article non trouvé.</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   // Function to render the call-to-action banner
   const renderCallToActionBanner = () => {
@@ -119,8 +87,12 @@ const BlogPostDetail: React.FC = () => {
   };
 
   // Function to split content into sections and insert the banner
-  const renderContentWithBanner = () => {
-    const contentArray = post.content.split('\n');
+  // Added a check to ensure post.content is a string before splitting
+  const renderContentWithBanner = (content: string | null | undefined) => {
+    if (!content || typeof content !== 'string') {
+        return null; // Or render a fallback message/component
+    }
+    const contentArray = content.split('\n');
     const oneThirdIndex = Math.ceil(contentArray.length / 3);
     const firstPart = contentArray.slice(0, oneThirdIndex);
     const secondPart = contentArray.slice(oneThirdIndex);
@@ -142,12 +114,52 @@ const BlogPostDetail: React.FC = () => {
     );
   };
 
+  // --- Conditional Rendering based on state ---
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-100">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-12 text-center">
+          <p>Chargement de l'article...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-100">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-12 text-center">
+          <p className="text-red-500">{error}</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // If not loading and no error, but post is still null (e.g., post not found)
+  if (!post) {
+     return (
+       <div className="flex flex-col min-h-screen bg-gray-100">
+         <Header />
+         <main className="flex-grow container mx-auto px-4 py-12 text-center">
+           <p>Article non trouvé.</p> {/* Or use the error message if set */}
+         </main>
+         <Footer />
+       </div>
+     );
+  }
+
+  // If post is loaded and available, render the post details
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-        {renderContentWithBanner()}
+        {/* Pass post.content to the rendering function */}
+        {renderContentWithBanner(post.content)}
       </main>
       <Footer />
     </div>
