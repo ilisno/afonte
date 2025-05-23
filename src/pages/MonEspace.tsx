@@ -27,6 +27,7 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { saveWorkoutLog, WorkoutLogEntry, getWorkoutLogs } from '@/utils/workoutLogs'; // Import the new utility function and type
 import { Link } from 'react-router-dom'; // Add this import
 import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // Define type for the data fetched from training_programs
 interface UserTrainingProgram {
@@ -492,14 +493,14 @@ const MonEspace: React.FC = () => {
                 </>
              )}
           </CardHeader>
-          <CardContent>
+          <CardContent className={cn("py-4", isMobile ? "px-0" : "px-4")}> {/* Conditional horizontal padding */}
             {selectedUserProgram ? (
               // Display selected program details
               <Accordion type="single" collapsible className="w-full">
                 {selectedUserProgram.program.weeks.map((week) => (
                   <AccordionItem value={`week-${week.weekNumber}`} key={week.weekNumber}>
-                    <AccordionTrigger className="text-lg font-semibold text-gray-800">Semaine {week.weekNumber}</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionTrigger className="text-lg font-semibold text-gray-800 px-4">Semaine {week.weekNumber}</AccordionTrigger> {/* Added px-4 */}
+                    <AccordionContent className="px-4"> {/* Added px-4 */}
                       <div className="space-y-6"> {/* Increased spacing */}
                         {week.days.map((day) => (
                           // Adjusted styling for the day container
@@ -571,86 +572,88 @@ const MonEspace: React.FC = () => {
                                </div>
                             ) : (
                                // Desktop View: Table
-                               <Table>
-                                 <TableHeader>
-                                   <TableRow>
-                                     <TableHead className="w-[150px]">Exercice</TableHead> {/* Fixed width */}
-                                     <TableHead className="text-center">Séries</TableHead>
-                                     <TableHead className="text-center">Répétitions</TableHead>
-                                     <TableHead className="text-center">Poids (kg)</TableHead> {/* Added Weight column */}
-                                     <TableHead>Notes</TableHead> {/* Added Notes column */}
-                                   </TableRow>
-                                 </TableHeader>
-                                 <TableBody>
-                                   {day.exercises.map((exercise, exerciseIndex) => {
-                                      // Determine number of sets from the string (e.g., "3" -> 3)
-                                      const numberOfSets = parseInt(exercise.sets, 10) || 0;
-                                      // Generate an array for mapping over sets
-                                      const setsArray = Array.from({ length: numberOfSets }, (_, i) => i);
+                               <div className="px-4 pb-4"> {/* Added px-4 pb-4 wrapper for the table */}
+                                 <Table>
+                                   <TableHeader>
+                                     <TableRow>
+                                       <TableHead className="w-[150px]">Exercice</TableHead> {/* Fixed width */}
+                                       <TableHead className="text-center">Séries</TableHead>
+                                       <TableHead className="text-center">Répétitions</TableHead>
+                                       <TableHead className="text-center">Poids (kg)</TableHead> {/* Added Weight column */}
+                                       <TableHead>Notes</TableHead> {/* Added Notes column */}
+                                     </TableRow>
+                                   </TableHeader>
+                                   <TableBody>
+                                     {day.exercises.map((exercise, exerciseIndex) => {
+                                        // Determine number of sets from the string (e.g., "3" -> 3)
+                                        const numberOfSets = parseInt(exercise.sets, 10) || 0;
+                                        // Generate an array for mapping over sets
+                                        const setsArray = Array.from({ length: numberOfSets }, (_, i) => i);
 
-                                      // Get current workout data for this exercise
-                                      const exerciseData = currentWorkoutData[exercise.name] || { sets: [], notes: '' };
+                                        // Get current workout data for this exercise
+                                        const exerciseData = currentWorkoutData[exercise.name] || { sets: [], notes: '' };
 
-                                      return (
-                                        <React.Fragment key={exerciseIndex}>
-                                          {setsArray.map((setIndex) => (
-                                            <TableRow key={`${exerciseIndex}-${setIndex}`}>
-                                              {setIndex === 0 ? (
-                                                // Display exercise name only for the first set row
-                                                <TableCell rowSpan={numberOfSets} className="font-medium align-top">
-                                                  {exercise.name}
-                                                  {exercise.notes && <p className="text-sm text-gray-500 italic mt-1">({exercise.notes})</p>} {/* Display program notes */}
-                                                </TableCell>
-                                              ) : null}
-                                              <TableCell className="text-center">{setIndex + 1}</TableCell> {/* Set number */}
-                                              <TableCell className="text-center">
-                                                 {/* Input for Reps */}
-                                                 <Input
-                                                    type="text" // Use text to allow ranges like "8-12"
-                                                    placeholder={exercise.reps} // Use program reps as placeholder
-                                                    value={exerciseData.sets[setIndex]?.reps || ''}
-                                                    onChange={(e) => handleWorkoutInputChange(exercise.name, setIndex, 'reps', e.target.value)}
-                                                    className="w-20 text-center mx-auto" // Small input
-                                                 />
-                                              </TableCell>
-                                              <TableCell className="text-center">
-                                                 {/* Input for Weight */}
-                                                 <Input
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={exerciseData.sets[setIndex]?.weight || ''}
-                                                    onChange={(e) => {
-                                                      const newWeight = e.target.value;
-                                                      handleWorkoutInputChange(exercise.name, setIndex, 'weight', newWeight);
-                                                      // Auto-fill weight for subsequent sets if this is the first set
-                                                      if (setIndex === 0) {
-                                                        for (let i = 1; i < numberOfSets; i++) {
-                                                          handleWorkoutInputChange(exercise.name, i, 'weight', newWeight);
-                                                        }
-                                                      }
-                                                    }}
-                                                    className="w-20 text-center mx-auto" // Small input
-                                                 />
-                                              </TableCell>
-                                               {setIndex === 0 ? (
-                                                // Display notes input only for the first set row
-                                                <TableCell rowSpan={numberOfSets} className="align-top">
+                                        return (
+                                          <React.Fragment key={exerciseIndex}>
+                                            {setsArray.map((setIndex) => (
+                                              <TableRow key={`${exerciseIndex}-${setIndex}`}>
+                                                {setIndex === 0 ? (
+                                                  // Display exercise name only for the first set row
+                                                  <TableCell rowSpan={numberOfSets} className="font-medium align-top">
+                                                    {exercise.name}
+                                                    {exercise.notes && <p className="text-sm text-gray-500 italic mt-1">({exercise.notes})</p>} {/* Display program notes */}
+                                                  </TableCell>
+                                                ) : null}
+                                                <TableCell className="text-center">{setIndex + 1}</TableCell> {/* Set number */}
+                                                <TableCell className="text-center">
+                                                   {/* Input for Reps */}
                                                    <Input
-                                                      type="text"
-                                                      placeholder="Notes pour l'exercice..."
-                                                      value={exerciseData.notes || ''}
-                                                      onChange={(e) => handleNotesInputChange(exercise.name, e.target.value)}
-                                                      className="w-full"
+                                                      type="text" // Use text to allow ranges like "8-12"
+                                                      placeholder={exercise.reps} // Use program reps as placeholder
+                                                      value={exerciseData.sets[setIndex]?.reps || ''}
+                                                      onChange={(e) => handleWorkoutInputChange(exercise.name, setIndex, 'reps', e.target.value)}
+                                                      className="w-20 text-center mx-auto" // Small input
                                                    />
                                                 </TableCell>
-                                              ) : null}
-                                            </TableRow>
-                                          ))}
-                                        </React.Fragment>
-                                      );
-                                   })}
-                                 </TableBody>
-                               </Table>
+                                                <TableCell className="text-center">
+                                                   {/* Input for Weight */}
+                                                   <Input
+                                                      type="number"
+                                                      placeholder="0"
+                                                      value={exerciseData.sets[setIndex]?.weight || ''}
+                                                      onChange={(e) => {
+                                                        const newWeight = e.target.value;
+                                                        handleWorkoutInputChange(exercise.name, setIndex, 'weight', newWeight);
+                                                        // Auto-fill weight for subsequent sets if this is the first set
+                                                        if (setIndex === 0) {
+                                                          for (let i = 1; i < numberOfSets; i++) {
+                                                            handleWorkoutInputChange(exercise.name, i, 'weight', newWeight);
+                                                          }
+                                                        }
+                                                      }}
+                                                      className="w-20 text-center mx-auto" // Small input
+                                                   />
+                                                </TableCell>
+                                                 {setIndex === 0 ? (
+                                                  // Display notes input only for the first set row
+                                                  <TableCell rowSpan={numberOfSets} className="align-top">
+                                                     <Input
+                                                        type="text"
+                                                        placeholder="Notes pour l'exercice..."
+                                                        value={exerciseData.notes || ''}
+                                                        onChange={(e) => handleNotesInputChange(exercise.name, e.target.value)}
+                                                        className="w-full"
+                                                     />
+                                                  </TableCell>
+                                                ) : null}
+                                              </TableRow>
+                                            ))}
+                                          </React.Fragment>
+                                        );
+                                     })}
+                                   </TableBody>
+                                 </Table>
+                               </div>
                             )}
 
 
