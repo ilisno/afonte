@@ -4,9 +4,12 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button'; // Using shadcn Button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Using shadcn Card
-import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell } from 'lucide-react'; // Importing icons
+import { DollarSign, Target, Clock, LineChart, Zap, Heart, Scale, Dumbbell, BarChart2 } from 'lucide-react'; // Importing icons, added BarChart2
+import { usePopup } from '@/contexts/PopupContext'; // Import usePopup
 
 const Index: React.FC = () => {
+  const { showMonEspacePreviewPopup } = usePopup(); // Get the new function from context
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
@@ -34,11 +37,6 @@ const Index: React.FC = () => {
         >
            <Link to="/programme">Créer mon programme</Link>
         </Button>
-
-        {/* Guarantee Text */}
-        {/* Removed: <p className="mt-4 text-gray-600 text-sm italic">
-          Résultats garantis, satisfait ou <strong>100% remboursé</strong>
-        </p> */}
 
         {/* Separator Line */}
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
@@ -90,6 +88,27 @@ const Index: React.FC = () => {
 
         {/* Separator Line */}
         <hr className="w-full max-w-4xl my-12 border-gray-300" />
+
+        {/* Mon Espace Preview Section */}
+        <section className="mt-16 w-full max-w-4xl text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-8">
+                Suivez vos progrès dans votre espace personnel
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Enregistrez vos performances, suivez l'évolution de vos charges et restez motivé avec votre historique d'entraînement.
+            </p>
+            <Button
+                onClick={showMonEspacePreviewPopup} // Trigger the popup
+                className="bg-sbf-red text-white hover:bg-sbf-yellow hover:text-sbf-red text-lg px-8 py-6 rounded-md font-semibold shadow-lg transition-colors duration-300 border-2 border-sbf-yellow"
+            >
+                <BarChart2 className="mr-2 h-6 w-6" /> Voir un aperçu
+            </Button>
+        </section>
+
+
+        {/* Separator Line */}
+        <hr className="w-full max-w-4xl my-12 border-gray-300" />
+
 
         {/* Benefits Section 2 - Life Improvement */}
         <section className="mt-16 w-full max-w-4xl text-left"> {/* Align text left */}

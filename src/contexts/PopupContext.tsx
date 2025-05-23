@@ -7,16 +7,17 @@ interface PopupContent {
   imageSrc?: string;
   imageAlt?: string;
   primaryButtonText: string;
-  primaryButtonAction: () => void; // Primary action is always a function (open link)
+  primaryButtonAction: () => void | string; // Primary action can be a function or a link path
   secondaryButtonText?: string;
-  secondaryButtonAction?: () => void; // Secondary action is always a function (close or navigate)
+  secondaryButtonAction?: () => void | string; // Secondary action can be a function or a link path
   id: string; // Unique ID for this specific popup instance/type
-  onCloseCallback?: () => void; // New: Callback to run when the popup is closed
+  onCloseCallback?: () => void; // Callback to run when the popup is closed
 }
 
 interface PopupContextType {
   showPopup: (content: PopupContent) => void; // Keep original showPopup for specific cases if needed
-  showRandomPopup: (options?: { onCloseCallback?: () => void }) => void; // New function for random popups, accepts callback
+  showRandomPopup: (options?: { onCloseCallback?: () => void }) => void; // Function for random popups, accepts callback
+  showMonEspacePreviewPopup: (options?: { onCloseCallback?: () => void }) => void; // New function for Mon Espace preview popup
   hidePopup: () => void;
   popupState: {
     isOpen: boolean;
@@ -26,8 +27,8 @@ interface PopupContextType {
 
 const PopupContext = createContext<PopupContextType | undefined>(undefined);
 
-// Define the four possible random popup contents with their specific links and generic actions
-const randomPopupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit callback here as it's added dynamically
+// Define all possible popup contents
+const popupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit callback here as it's added dynamically
   {
     id: 'random_popup_1',
     title: "Nutrimuscle - Que du propre, du traçable et du performant.",
@@ -72,6 +73,18 @@ const randomPopupContents: Omit<PopupContent, 'onCloseCallback'>[] = [ // Omit c
     secondaryButtonText: "Continuer",
     secondaryButtonAction: () => {}, // Action to just close the popup
   },
+  // New entry for Mon Espace preview
+  {
+    id: 'mon_espace_preview',
+    title: "Suivez vos programmes et performances !",
+    description: "Connectez-vous à votre espace personnel pour retrouver tous vos programmes générés et enregistrer vos performances séance après séance.",
+    imageSrc: "/mon-espace-preview.jpg", // Placeholder image - replace with a screenshot of Mon Espace
+    imageAlt: "Aperçu de la page Mon Espace",
+    primaryButtonText: "Aller à Mon Espace",
+    primaryButtonAction: "/mon-espace", // This is a link path
+    secondaryButtonText: "Fermer",
+    secondaryButtonAction: () => {}, // Action to just close the popup
+  },
 ];
 
 
@@ -82,52 +95,48 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   // Function to show a specific popup (can still be used if needed)
-  const showSpecificPopup = useCallback((content: PopupContent) => {
-     // Keep the specific popup tracking if needed, or remove this localStorage check
-     const hasBeenShown = localStorage.getItem(`popup_${content.id}_shown`);
-     if (hasBeenShown) {
-       console.log(`Specific popup with ID ${content.id} has already been shown.`);
-       // If a specific popup is triggered but already shown, maybe still run its onCloseCallback?
-       // Let's assume not for now, the trigger just fails silently.
-       return;
-     }
+  const showPopup = useCallback((content: PopupContent) => {
      setPopupState({ isOpen: true, content });
   }, []); // Empty dependency array as it doesn't depend on external state
 
-  // Function to show a random popup from the predefined list
+  // Function to show a random popup from the predefined list (excluding specific ones like preview)
   const showRandomPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
-      // Removed the localStorage check 'any_random_popup_shown'
-      // The popup will now show every time this function is called.
+      // Filter out specific popups that should only be shown on demand
+      const randomizablePopups = popupContents.filter(p => p.id.startsWith('random_popup_'));
+
+      if (randomizablePopups.length === 0) {
+          console.warn("No randomizable popups defined.");
+          options?.onCloseCallback?.(); // Still run callback even if no popup is shown
+          return;
+      }
 
       // Select a random popup content
-      const randomIndex = Math.floor(Math.random() * randomPopupContents.length);
-      const randomContent = randomPopupContents[randomIndex];
+      const randomIndex = Math.floor(Math.random() * randomizablePopups.length);
+      const randomContent = randomizablePopups[randomIndex];
 
       console.log("Showing random popup:", randomContent.id);
       // Add the onCloseCallback to the selected content before setting state
       setPopupState({ isOpen: true, content: { ...randomContent, onCloseCallback: options?.onCloseCallback } });
   }, []); // Empty dependency array as it doesn't depend on external state
 
+  // New function to show the Mon Espace preview popup
+  const showMonEspacePreviewPopup = useCallback((options?: { onCloseCallback?: () => void }) => {
+      const previewContent = popupContents.find(p => p.id === 'mon_espace_preview');
+
+      if (!previewContent) {
+          console.error("Mon Espace preview popup content not found.");
+          options?.onCloseCallback?.(); // Still run callback even if no popup is shown
+          return;
+      }
+
+      console.log("Showing Mon Espace preview popup.");
+      // Add the onCloseCallback to the selected content before setting state
+      setPopupState({ isOpen: true, content: { ...previewContent, onCloseCallback: options?.onCloseCallback } });
+  }, []); // Empty dependency array
 
   const hidePopup = useCallback(() => {
      // Get the content of the popup being closed
      const closedPopupContent = popupState.content;
-
-     // Mark the currently open popup as shown in localStorage
-     // If it's a random popup, set the 'any_random_popup_shown' flag
-     // Re-adding the localStorage flag here, but only when the popup is *closed* by the user.
-     // This prevents it from showing *again* after the user has seen it and closed it.
-     // If the goal is to show it *every time* the form is submitted, this localStorage logic should be removed entirely.
-     // Let's remove the localStorage logic entirely for random popups to ensure it shows on every form submit.
-     /*
-     if (closedPopupContent?.id.startsWith('random_popup_')) {
-        localStorage.setItem('any_random_popup_shown', 'true');
-        console.log("Marking 'any_random_popup_shown' as true.");
-     } else if (closedPopupContent?.id) {
-        // Keep specific popup tracking if needed
-        localStorage.setItem(`popup_${closedPopupContent.id}_shown`, 'true');
-     }
-     */
 
     // Reset state *before* calling the callback to ensure context is updated
     setPopupState({ isOpen: false, content: null });
@@ -139,11 +148,12 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // The value provided by the context
   const contextValue = useMemo(() => ({
-      showPopup: showSpecificPopup, // Expose showSpecificPopup as showPopup
+      showPopup, // Expose showSpecificPopup as showPopup
       showRandomPopup,
+      showMonEspacePreviewPopup, // Expose the new function
       hidePopup,
       popupState,
-  }), [showSpecificPopup, showRandomPopup, hidePopup, popupState]); // Include all dependencies
+  }), [showPopup, showRandomPopup, showMonEspacePreviewPopup, hidePopup, popupState]); // Include all dependencies
 
   return (
     <PopupContext.Provider value={contextValue}>
@@ -158,9 +168,9 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           imageSrc={popupState.content.imageSrc}
           imageAlt={popupState.content.imageAlt}
           primaryButtonText={popupState.content.primaryButtonText}
-          primaryButtonAction={popupState.content.primaryButtonAction} // Pass the function directly
+          primaryButtonAction={popupState.content.primaryButtonAction} // Pass the action directly (can be string or function)
           secondaryButtonText={popupState.content.secondaryButtonText}
-          secondaryButtonAction={popupState.content.secondaryButtonAction} // Pass the function directly
+          secondaryButtonAction={popupState.content.secondaryButtonAction} // Pass the action directly (can be string or function)
         />
       )}
     </PopupContext.Provider>
