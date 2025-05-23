@@ -27,12 +27,16 @@ const BlogPostDetail: React.FC = () => {
       setPost(null); // Clear previous post data
 
       try {
-        // Ensure the query fetches the 'body' field
+        // Ensure the query fetches 'body' and 'mainImage' fields
         const query = `*[_type == "post" && slug.current == $slug]{
           _id,
           title,
           slug,
           body, // Fetch the content from the 'body' field (Portable Text)
+          mainImage{ // Fetch main image details
+            asset->{url}, // Get the image URL
+            alt // Get the alt text
+          },
           "categories": categories[]->title,
           "author": author->{name, image}
         }`;
@@ -147,14 +151,23 @@ const BlogPostDetail: React.FC = () => {
   // If post is loaded and available, render the post details
   console.log("[BlogPostDetail] Rendering: Post available.", post);
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gray-100"> {/* This div provides the grey background */}
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-8 text-gray-800">{post.title}</h1> {/* Increased bottom margin */}
+      <main className="flex-grow container mx-auto px-4 py-12"> {/* This centers the content and adds padding */}
+        <h1 className="text-4xl font-bold mb-8 text-gray-800 text-center">{post.title}</h1> {/* Increased bottom margin, centered title */}
+
+        {/* Display Main Image */}
+        {post.mainImage?.asset?.url && (
+            <img
+              src={post.mainImage.asset.url}
+              alt={post.mainImage.alt || post.title}
+              className="w-full h-auto object-cover rounded-md mb-8" // Added styling: full width, auto height, cover, rounded corners, bottom margin
+            />
+          )}
 
         {/* Render the Portable Text content from 'body' */}
-        {/* Apply prose classes to style the content */}
-        <div className="prose prose-lg max-w-none mx-auto"> {/* Added mx-auto to center if max-width was applied */}
+        {/* Apply prose classes and max-w-prose to style and narrow the content */}
+        <div className="prose prose-lg max-w-prose mx-auto"> {/* Changed max-w-none to max-w-prose, kept mx-auto */}
            {/* Check if post.body exists before rendering PortableText */}
            {post.body ? (
                <PortableText value={post.body} />
