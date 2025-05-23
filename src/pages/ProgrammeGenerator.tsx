@@ -437,7 +437,8 @@ const ProgrammeGenerator: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Overhead Press (kg)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.target.value === '' ? field.onChange(null) : field.onChange(parseFloat(e.target.value))} />
+                                        {/* Corrected onChange handler */}
+                                        <Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
